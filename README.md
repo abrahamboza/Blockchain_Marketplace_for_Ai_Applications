@@ -107,7 +107,7 @@ This project implements a secure, decentralized platform where AI researchers, d
 
 3. Install dependencies
    ```bash
-   pip install flask sqlalchemy cryptography
+   pip install requirements.txt
    ```
 
 4. Initialize the database (with fresh reset)
