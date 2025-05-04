@@ -4,6 +4,7 @@ from encryption import generate_key, encrypt_file, decrypt_file, hash_key
 import json
 import hashlib
 import time
+from database import BlockEntry
 import uuid
 
 
@@ -66,8 +67,11 @@ class MarketplaceBlockchain(Blockchain):
 
             # Blockchain-Transaktion erstellen
             metadata_with_hash = metadata.copy()
-            metadata_with_hash['file_hash'] = hashlib.sha256(file_content if isinstance(file_content, bytes)
-                                                             else file_content.encode()).hexdigest()
+
+            # Erstelle einen eindeutigen Hash durch Hinzufügen von Timestamp und Benutzer-ID
+            unique_data = (str(file_content) + str(time.time()) + str(user.id)).encode()
+            file_hash = hashlib.sha256(unique_data).hexdigest()
+            metadata_with_hash['file_hash'] = file_hash
 
             # Transaktion zur Blockchain hinzufügen
             data_id = self.data_upload_transaction(owner_address, metadata_with_hash, price)
@@ -86,7 +90,7 @@ class MarketplaceBlockchain(Blockchain):
 
             # Verschlüsselte Datei in der Datenbank speichern
             encrypted_file = EncryptedFile(
-                file_hash=metadata_with_hash['file_hash'],
+                file_hash=file_hash,
                 encrypted_content=encrypted_content,
                 encryption_key_hash=key_hash,
                 data_entry_id=data_entry.id
@@ -95,6 +99,9 @@ class MarketplaceBlockchain(Blockchain):
             session.commit()
 
             return data_id, key.decode()  # Schlüssel als String zurückgeben
+        except Exception as e:
+            session.rollback()
+            raise e
         finally:
             session.close()
 
@@ -268,5 +275,71 @@ class MarketplaceBlockchain(Blockchain):
             except Exception as e:
                 raise ValueError(f"Entschlüsselung fehlgeschlagen: {str(e)}")
 
+        finally:
+            session.close()
+
+    def make_block(self, proof: int) -> Block:
+        """
+        Creates a new Block in the Blockchain
+        :param proof:
+        :return: new Block
+        """
+        previous_block = self.last_block
+
+        # Neuen Block erstellen
+        block = Block(
+            index=len(self.chain),
+            previous_hash=previous_block.hash,
+            timestamp=time.time(),
+            transactions=self.current_transactions,
+            proof=proof,
+        )
+
+        # Reset current transactions
+        self.current_transactions = []
+
+        # Add Block to the chain
+        self.chain.append(block)
+
+        # Speichere den Block in der Datenbank
+        try:
+            self._save_block_to_database(block)
+        except Exception as e:
+            print(f"Fehler beim Speichern des Blocks in der Datenbank: {e}")
+
+        return block
+
+    def _save_block_to_database(self, block: Block) -> None:
+        """
+        Speichert einen Block in der Datenbank
+        :param block: Der zu speichernde Block
+        """
+        session = self.db_manager.get_session()
+        try:
+            # Prüfen, ob Block bereits existiert
+            existing_block = session.query(BlockEntry).filter_by(index=block.index).first()
+            if existing_block:
+                # Block existiert bereits, update
+                existing_block.previous_hash = block.previous_hash
+                existing_block.timestamp = block.timestamp
+                existing_block.proof = block.proof
+                existing_block.block_hash = block.hash
+                existing_block.transactions_json = json.dumps(block.transactions)
+            else:
+                # Block neu anlegen
+                block_entry = BlockEntry(
+                    index=block.index,
+                    previous_hash=block.previous_hash,
+                    timestamp=block.timestamp,
+                    proof=block.proof,
+                    block_hash=block.hash,
+                    transactions_json=json.dumps(block.transactions)
+                )
+                session.add(block_entry)
+
+            session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
         finally:
             session.close()

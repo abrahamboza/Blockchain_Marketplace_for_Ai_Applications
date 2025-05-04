@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Explorer - Blockchain Marketplace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .container-fluid {
+            padding: 0 2rem;
+        }
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+            padding: 0 1rem;
+        }
+        .data-section {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+        .data-section h3 {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .data-item {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border-left: 5px solid #6c757d;
+        }
+        .data-item.encrypted {
+            border-left-color: #dc3545;
+        }
+        .data-item.decrypted {
+            border-left-color: #28a745;
+        }
+        .data-label {
+            font-weight: bold;
+            color: #343a40;
+        }
+        .data-value {
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .encrypted-content {
+            max-height: 100px;
+            overflow-y: auto;
+            background-color: #f1f1f1;
+            padding: 0.5rem;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+        .decrypted-content {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: #e8f5e9;
+            padding: 0.5rem;
+            border-radius: 3px;
+        }
+        .nav-tabs {
+            margin-bottom: 1rem;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+        .badge {
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="header">
+            <h1>Database Explorer</h1>
+            <p class="lead">View the complete database with encrypted and decrypted data</p>
+            <div class="btn-group">
+                <a href="/admin" class="btn btn-outline-secondary">Back to Admin Dashboard</a>
+                <a href="/" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="data-section encrypted">
+                    <h3>Encrypted Database <span class="badge bg-danger">Raw Data</span></h3>
+
+                    <ul class="nav nav-tabs" id="encryptedTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">Users</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="data-entries-tab" data-bs-toggle="tab" data-bs-target="#data-entries" type="button" role="tab">Data Entries</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="model-entries-tab" data-bs-toggle="tab" data-bs-target="#model-entries" type="button" role="tab">Model Entries</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="encrypted-files-tab" data-bs-toggle="tab" data-bs-target="#encrypted-files" type="button" role="tab">Encrypted Files</button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="encryptedTabsContent">
+                        <!-- Users Tab -->
+                        <div class="tab-pane fade show active" id="users" role="tabpanel">
+                            {% if users %}
+                                {% for user in users %}
+                                <div class="data-item encrypted">
+                                    <div><span class="data-label">ID:</span> <span class="data-value">{{ user.id }}</span></div>
+                                    <div><span class="data-label">Address:</span> <span class="data-value">{{ user.address }}</span></div>
+                                    <div><span class="data-label">Public Key:</span> <span class="data-value">{{ user.public_key or "Not set" }}</span></div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">No users found in database.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Data Entries Tab -->
+                        <div class="tab-pane fade" id="data-entries" role="tabpanel">
+                            {% if data_entries %}
+                                {% for entry in data_entries %}
+                                <div class="data-item encrypted">
+                                    <div><span class="data-label">ID:</span> <span class="data-value">{{ entry.id }}</span></div>
+                                    <div><span class="data-label">Data ID:</span> <span class="data-value">{{ entry.data_id }}</span></div>
+                                    <div><span class="data-label">Owner ID:</span> <span class="data-value">{{ entry.owner_id }}</span></div>
+                                    <div><span class="data-label">Price:</span> <span class="data-value">{{ entry.price }}</span></div>
+                                    <div><span class="data-label">Timestamp:</span> <span class="data-value">{{ entry.timestamp|timestamp_to_datetime }}</span></div>
+                                    <div>
+                                        <span class="data-label">Metadata:</span>
+                                        <pre class="data-value">{{ entry.data_metadata|tojson(indent=2) }}</pre>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">No data entries found in database.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Model Entries Tab -->
+                        <div class="tab-pane fade" id="model-entries" role="tabpanel">
+                            {% if model_entries %}
+                                {% for entry in model_entries %}
+                                <div class="data-item encrypted">
+                                    <div><span class="data-label">ID:</span> <span class="data-value">{{ entry.id }}</span></div>
+                                    <div><span class="data-label">Model ID:</span> <span class="data-value">{{ entry.model_id }}</span></div>
+                                    <div><span class="data-label">Owner ID:</span> <span class="data-value">{{ entry.owner_id }}</span></div>
+                                    <div><span class="data-label">Price:</span> <span class="data-value">{{ entry.price }}</span></div>
+                                    <div><span class="data-label">Timestamp:</span> <span class="data-value">{{ entry.timestamp|timestamp_to_datetime }}</span></div>
+                                    <div>
+                                        <span class="data-label">Metadata:</span>
+                                        <pre class="data-value">{{ entry.model_metadata|tojson(indent=2) }}</pre>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">No model entries found in database.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Encrypted Files Tab -->
+                        <div class="tab-pane fade" id="encrypted-files" role="tabpanel">
+                            {% if encrypted_files %}
+                                {% for file in encrypted_files %}
+                                <div class="data-item encrypted">
+                                    <div><span class="data-label">ID:</span> <span class="data-value">{{ file.id }}</span></div>
+                                    <div><span class="data-label">File Hash:</span> <span class="data-value">{{ file.file_hash }}</span></div>
+                                    <div><span class="data-label">Encryption Key Hash:</span> <span class="data-value">{{ file.encryption_key_hash }}</span></div>
+                                    <div><span class="data-label">Data Entry ID:</span> <span class="data-value">{{ file.data_entry_id or "N/A" }}</span></div>
+                                    <div><span class="data-label">Model Entry ID:</span> <span class="data-value">{{ file.model_entry_id or "N/A" }}</span></div>
+                                    <div>
+                                        <span class="data-label">Encrypted Content (Sample):</span>
+                                        <div class="encrypted-content">
+                                            <code>{{ file.encrypted_content_sample }}</code>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">No encrypted files found in database.</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="data-section decrypted">
+                    <h3>Decrypted Data <span class="badge bg-success">Decoded Content</span></h3>
+
+                    <!-- List of decrypted data -->
+                    {% if decrypted_data %}
+                        {% for item in decrypted_data %}
+                        <div class="data-item decrypted">
+                            <div><span class="data-label">Data ID:</span> <span class="data-value">{{ item.data_id }}</span></div>
+                            <div><span class="data-label">Name:</span> <span class="data-value">{{ item.name }}</span></div>
+                            <div><span class="data-label">Owner:</span> <span class="data-value">{{ item.owner }}</span></div>
+                            <div><span class="data-label">File Type:</span> <span class="data-value">{{ item.file_type }}</span></div>
+                            <div>
+                                <span class="data-label">Content Preview:</span>
+                                <div class="decrypted-content">
+                                    {% if item.is_csv %}
+                                        <table class="table table-sm table-bordered">
+                                            {% for row in item.content_preview %}
+                                            <tr>
+                                                {% for cell in row %}
+                                                <td>{{ cell }}</td>
+                                                {% endfor %}
+                                            </tr>
+                                            {% endfor %}
+                                        </table>
+                                        {% if item.has_more %}
+                                        <div class="text-center"><small class="text-muted">Showing first 10 rows...</small></div>
+                                        {% endif %}
+                                    {% else %}
+                                        <pre>{{ item.content_preview }}</pre>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">No decrypted data available. All data is shown in encrypted form.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

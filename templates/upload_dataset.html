@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Dataset - Blockchain Marketplace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .form-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Upload Dataset</h1>
+            <p class="lead">Share your data securely on the blockchain marketplace</p>
+        </div>
+
+        <div class="form-container">
+            <form action="/api/upload-dataset" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="owner_address" class="form-label">Your Blockchain Address</label>
+                    <input type="text" class="form-control" id="owner_address" name="owner_address" required
+                           placeholder="Enter your blockchain address">
+                    <div class="form-text">This will be used to identify you as the owner of the dataset</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Dataset Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required
+                           placeholder="Give your dataset a descriptive name">
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" required
+                              placeholder="Describe what your dataset contains, how it was collected, etc."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="price" class="form-label">Price (optional)</label>
+                    <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" value="0"
+                           placeholder="Set a price for your dataset (0 for free)">
+                </div>
+
+                <div class="mb-3">
+                    <label for="dataset_file" class="form-label">Dataset File (CSV or Excel)</label>
+                    <input type="file" class="form-control" id="dataset_file" name="dataset_file" required
+                           accept=".csv, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                    <div class="form-text">Upload your dataset file (CSV or Excel format)</div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">Upload to Blockchain</button>
+                    <a href="/" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

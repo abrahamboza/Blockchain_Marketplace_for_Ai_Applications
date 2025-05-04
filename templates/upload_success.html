@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Successful - Blockchain Marketplace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .success-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .key-info {
+            background-color: #e9ecef;
+            padding: 1rem;
+            border-radius: 5px;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .alert-warning {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="alert alert-success">
+                <h1>🎉 Upload Successful!</h1>
+                <p class="lead">Your dataset has been successfully uploaded to the blockchain</p>
+            </div>
+        </div>
+
+        <div class="success-container">
+            <h3>Important Information</h3>
+            <p>Please save the following information. You'll need it to access your data later.</p>
+
+            <div class="mb-4">
+                <h5>Data ID</h5>
+                <div class="key-info">{{ data_id }}</div>
+                <small class="text-muted">This is the unique identifier for your dataset on the blockchain</small>
+            </div>
+
+            <div class="mb-4">
+                <h5>Encryption Key</h5>
+                <div class="key-info">{{ encryption_key }}</div>
+                <small class="text-muted">This key is needed to decrypt your data</small>
+            </div>
+
+            <div class="alert alert-warning">
+                <strong>Security Notice:</strong> Store your encryption key safely! Anyone with this key can access your dataset.
+                This key is not stored on our servers and cannot be recovered if lost.
+            </div>
+
+            <div class="d-grid gap-2">
+                <a href="/view-blockchain" class="btn btn-primary">View on Blockchain</a>
+                <a href="/" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

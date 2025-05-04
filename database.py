@@ -97,3 +97,16 @@ class DatabaseManager:
     def get_session(self):
         """Gibt eine neue Datenbanksitzung zurück"""
         return self.Session()
+
+# In database.py hinzufügen (nach den anderen Klassen wie User, DataEntry, etc.)
+class BlockEntry(Base):
+    __tablename__ = 'blocks'
+
+    id = Column(Integer, primary_key=True)
+    index = Column(Integer, nullable=False, unique=True)
+    previous_hash = Column(String(64), nullable=False)
+    timestamp = Column(Float, nullable=False)
+    proof = Column(Integer, nullable=False)
+    block_hash = Column(String(64), nullable=False)
+    # JSON-Repräsentation der Transaktionen
+    transactions_json = Column(Text, nullable=False)
