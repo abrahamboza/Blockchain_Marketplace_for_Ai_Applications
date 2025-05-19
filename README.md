@@ -7,7 +7,7 @@
 
 ## 🌟 Überblick
 
-Dieses Projekt implementiert eine sichere, dezentralisierte Plattform, auf der KI-Forscher, Datenwissenschaftler und Organisationen Datensätze und Machine-Learning-Modelle teilen, entdecken, kaufen und monetarisieren können. Durch den Einsatz der Blockchain-Technologie werden alle Transaktionen transparent und unveränderlich gespeichert, während gleichzeitig die Privatsphäre durch Ende-zu-Ende-Verschlüsselung gewahrt bleibt.
+Dieses Projekt implementiert einen Mockup welcher die Vorstufe eines Marktplatzes sein soll welcher eine sichere, dezentralisierte Plattform, auf der KI-Forscher, Datenwissenschaftler und Organisationen Datensätze und Machine-Learning-Modelle teilen, entdecken, kaufen und monetarisieren können. Durch den Einsatz der Blockchain-Technologie werden alle Transaktionen transparent und unveränderlich gespeichert, während gleichzeitig die Privatsphäre durch Ende-zu-Ende-Verschlüsselung gewahrt bleibt.
 
 ## ✨ Hauptfunktionen
 
@@ -160,8 +160,8 @@ python Tests/database_test.py
 python Tests/marketplace_test.py
 ```
 
-## 👥 Autoren
+## 👥 Autor
 
-- [Florian Kuhlert] - Anfängliche Entwicklung und Konzeption
+- [Florian Kuhlert] - Entwicklung und Konzeption
 
 **Hinweis**: Dieses Projekt dient Demonstrations- und Bildungszwecken.
