@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Details - Blockchain Marketplace</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .container {
+            max-width: 1000px;
+        }
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+        }
+        .blockchain-info {
+            background-color: #f0f8ff;
+            border-left: 4px solid #0d6efd;
+        }
+        .model-info {
+            background-color: #f0fff0;
+            border-left: 4px solid #198754;
+        }
+        .performance-info {
+            background-color: #fff0f5;
+            border-left: 4px solid #dc3545;
+        }
+        .lineage-box {
+            position: relative;
+            padding: 20px;
+            margin-bottom: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .lineage-arrow {
+            position: absolute;
+            left: 50%;
+            bottom: -25px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 20px solid #fff;
+            z-index: 2;
+        }
+        .lineage-shadow {
+            position: absolute;
+            left: 50%;
+            bottom: -28px;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 23px solid transparent;
+            border-right: 23px solid transparent;
+            border-top: 23px solid rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ model.name }}</h1>
+            <p class="lead">{{ model.description }}</p>
+            <div class="btn-group mb-3">
+                <a href="/training/dashboard" class="btn btn-outline-secondary">Back to Training Dashboard</a>
+                <a href="/" class="btn btn-outline-secondary">Back to Home</a>
+            </div>
+        </div>
+
+        <!-- Model Lineage Visualization -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Model Lineage</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="text-center mb-4">Blockchain-Verified Data Provenance</h5>
+
+                        <div class="lineage-box text-center">
+                            <h5>Dataset</h5>
+                            <p class="mb-0"><strong>ID:</strong> {{ dataset.data_id }}</p>
+                            <p class="mb-0"><strong>Name:</strong> {{ dataset.name }}</p>
+                            <p class="mb-0"><strong>Owner:</strong> {{ dataset.owner }}</p>
+                            <div class="lineage-arrow"></div>
+                            <div class="lineage-shadow"></div>
+                        </div>
+
+                        <div class="lineage-box text-center">
+                            <h5>Training Transaction</h5>
+                            <p class="mb-0"><strong>ID:</strong> {{ model.training_transaction }}</p>
+                            <p class="mb-0"><strong>Recorded on Blockchain:</strong> {{ training_timestamp }}</p>
+                            <p class="mb-0"><strong>Creator:</strong> {{ model.owner }}</p>
+                            <div class="lineage-arrow"></div>
+                            <div class="lineage-shadow"></div>
+                        </div>
+
+                        <div class="lineage-box text-center">
+                            <h5>Trained Model</h5>
+                            <p class="mb-0"><strong>ID:</strong> {{ model.model_id }}</p>
+                            <p class="mb-0"><strong>IPFS CID:</strong> {{ model.ipfs_cid }}</p>
+                            <p class="mb-0"><strong>Creation Date:</strong> {{ model.creation_date }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Information -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card blockchain-info">
+                    <div class="card-header">
+                        <h5 class="mb-0">Blockchain Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Model ID
+                                <span class="text-monospace">{{ model.model_id }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Owner
+                                <span>{{ model.owner }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Training Transaction
+                                <a href="/view-transaction/{{ model.training_transaction }}" class="badge bg-primary">View</a>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                IPFS CID
+                                <span class="text-monospace">{{ model.ipfs_cid[:8] }}...</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Created On
+                                <span>{{ model.creation_date }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card model-info">
+                    <div class="card-header">
+                        <h5 class="mb-0">Model Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Algorithm Type
+                                <span>{{ model.algorithm_type }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Target Column
+                                <span>{{ model.target_column }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Features Count
+                                <span>{{ model.features_count }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Samples Count
+                                <span>{{ model.samples_count }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Training Time
+                                <span>{{ model.training_time }} seconds</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card performance-info">
+                    <div class="card-header">
+                        <h5 class="mb-0">Performance Metrics</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            {% for key, value in model.metrics.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ key }}
+                                <span class="badge bg-success">{{ "%.4f"|format(value) }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Model Testing -->
+        <div class="card mt-4">
+            <div class="card-header bg-dark text-white">
+                <h4 class="mb-0">Test Model</h4>
+            </div>
+            <div class="card-body">
+                <form id="prediction-form">
+                    <div class="mb-3">
+                        <label for="prediction-data" class="form-label">Input Data (JSON format)</label>
+                        <textarea class="form-control" id="prediction-data" rows="5" placeholder='{"feature1": value1, "feature2": value2, ...}'></textarea>
+                        <div class="form-text">Enter feature values in JSON format based on the training dataset structure.</div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Make Prediction</button>
+                    </div>
+                </form>
+
+                <div id="prediction-result" class="mt-4 d-none">
+                    <!-- Prediction results will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Model Details JavaScript -->
+    <script>
+        // Handle prediction form submission
+        document.getElementById('prediction-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const predictionData = document.getElementById('prediction-data').value;
+
+            try {
+                // Parse the JSON input
+                const jsonData = JSON.parse(predictionData);
+
+                // Make the prediction request
+                const response = await fetch('/training/model-predict/{{ model.model_id }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        data: jsonData
+                    })
+                });
+
+                const result = await response.json();
+                const resultContainer = document.getElementById('prediction-result');
+
+                if (response.ok) {
+                    // Format the predictions
+                    let predictionsHtml = '';
+                    if (result.predictions && result.predictions.length > 0) {
+                        if (result.predictions.length === 1) {
+                            // Single prediction (probably for regression)
+                            predictionsHtml = `<h5>Predicted Value: <span class="badge bg-success">${result.predictions[0]}</span></h5>`;
+                        } else {
+                            // Multiple predictions
+                            predictionsHtml = '<h5>Predictions:</h5><ul class="list-group">';
+                            result.predictions.forEach((pred, index) => {
+                                predictionsHtml += `<li class="list-group-item">Item ${index + 1}: <span class="badge bg-success">${pred}</span></li>`;
+                            });
+                            predictionsHtml += '</ul>';
+                        }
+                    } else {
+                        predictionsHtml = '<p class="text-muted">No predictions returned.</p>';
+                    }
+
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <h4 class="alert-heading">Prediction Successful!</h4>
+                            <p>The model has processed your input data and returned predictions.</p>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">Prediction Results</h5>
+                            </div>
+                            <div class="card-body">
+                                ${predictionsHtml}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Show error
+                    resultContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4 class="alert-heading">Prediction Failed</h4>
+                            <p>${result.error || 'An unknown error occurred during prediction.'}</p>
+                        </div>
+                    `;
+                }
+
+                resultContainer.classList.remove('d-none');
+            } catch (error) {
+                console.error('Error making prediction:', error);
+
+                // Handle JSON parse error
+                if (error instanceof SyntaxError) {
+                    document.getElementById('prediction-result').innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4 class="alert-heading">Invalid Input Format</h4>
+                            <p>Please enter valid JSON data. Example: {"feature1": 1.0, "feature2": "value"}</p>
+                        </div>
+                    `;
+                } else {
+                    // Show other errors
+                    document.getElementById('prediction-result').innerHTML = `
+                        <div class="alert alert-danger">
+                            <h4 class="alert-heading">Prediction Failed</h4>
+                            <p>An error occurred during the prediction process: ${error.message}</p>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('prediction-result').classList.remove('d-none');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -66,13 +66,16 @@ class ModelEntry(Base):
     encrypted_file = relationship("EncryptedFile", uselist=False, back_populates="model_entry")
 
 
+# Modification to database.py - EncryptedFile class
+
 class EncryptedFile(Base):
     __tablename__ = 'encrypted_files'
 
     id = Column(Integer, primary_key=True)
     file_hash = Column(String(64), unique=True)
-    encrypted_content = Column(LargeBinary)  # Binäre Speicherung der verschlüsselten Datei
-    encryption_key_hash = Column(String(64))  # Hash des Verschlüsselungsschlüssels
+    encrypted_content = Column(LargeBinary, nullable=True)  # Now optional since we can use IPFS
+    ipfs_cid = Column(String(64), nullable=True)  # New: IPFS Content Identifier
+    encryption_key_hash = Column(String(64))
     data_entry_id = Column(Integer, ForeignKey('data_entries.id'), nullable=True)
     model_entry_id = Column(Integer, ForeignKey('model_entries.id'), nullable=True)
 

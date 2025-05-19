@@ -2,14 +2,20 @@
   "datasets": [
     {
       "name": "result.csv",
-      "data_id": "8aea1a70be794b1e924a530127e16fde",
-      "encryption_key": "3G4IL_XjACn7OcBpPzfCbhgtCNSjTNgEGBALDPjf8uU=",
+      "data_id": "3d3dfdd2461449dfa36d7143daa5ed7b",
+      "encryption_key": "sZdM-E7nc2eAsBipnJ_52EstQn21iiXcFRx5Poofn14=",
       "upload_date": "2025-05-04"
     },
     {
-      "name": "result (1).csv",
-      "data_id": "2b4c541fc09b4565a32079ef0f5f4588",
-      "encryption_key": "nhFsvq1GpUcHFdCfryrDSaHuPHAGOPFtLjUG7Enx47s=",
+      "name": "beispiel_daten.xlsx",
+      "data_id": "cb20f7d6054c4e3280fc2eaf1c55aac1",
+      "encryption_key": "iCrRPbxw1F5XjrQAhXSopyFhwbB3Pf5t994_2Pr_G-E=",
+      "upload_date": "2025-05-04"
+    },
+    {
+      "name": "beispiel_daten.xlsx",
+      "data_id": "7e40666325a847cd8aa3dc4a33945e0f",
+      "encryption_key": "da17s2ACRCyLvsUUnkxUoT7pavAY7sv35j8xQNAVvO0=",
       "upload_date": "2025-05-04"
     }
   ]

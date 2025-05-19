@@ -6,16 +6,20 @@ from key_manager import save_key, get_key
 import json
 import base64
 import datetime
+from datetime import time
 import sqlite3
 import csv
 import io
 import os
 import sys
 import functools
-
+# Import the model training class
+from model_training import ModelTrainer
 # Import der Datenbankinitialisierungsfunktionen
 from database_handling import handle_database_initialization
-
+# Ueberpruefung, ob die ipfs simulation existiert
+os.makedirs("Storage_IPFS_sim/ipfs_data/objects", exist_ok=True)
+os.makedirs("Storage_IPFS_sim/ipfs_data/temp", exist_ok=True)
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # For session management
 
@@ -50,6 +54,55 @@ def admin_required(f):
 def index():
     return render_template('index.html')
 
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """User login page"""
+    if request.method == 'POST':
+        # Get form data
+        user_address = request.form.get('user_address')
+
+        if not user_address:
+            flash('User address is required', 'danger')
+            return render_template('login.html')
+
+        # Check if user exists in the database
+        db_manager = blockchain.db_manager
+        db_session = db_manager.get_session()
+
+        try:
+            user = db_session.query(User).filter_by(address=user_address).first()
+
+            # If user doesn't exist, create one
+            if not user:
+                user = User(address=user_address)
+                db_session.add(user)
+                db_session.commit()
+                flash('New user created with address: ' + user_address, 'success')
+
+            # Set session variables
+            session['user_address'] = user_address
+            flash('Login successful!', 'success')
+
+            # Redirect to the intended page or dashboard
+            next_page = request.args.get('next', 'index')
+            return redirect(url_for(next_page))
+
+        except Exception as e:
+            flash(f'Error during login: {str(e)}', 'danger')
+            return render_template('login.html')
+        finally:
+            db_session.close()
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    """User logout"""
+    session.pop('user_address', None)
+    flash('You have been logged out', 'info')
+    return redirect(url_for('index'))
 
 # Dataset upload page
 @app.route('/upload-dataset')
@@ -198,54 +251,65 @@ def admin_database():
                     if data_entry:
                         # Find the encrypted file
                         encrypted_file = session_db.query(EncryptedFile).filter_by(data_entry_id=data_entry.id).first()
-                        if encrypted_file and encrypted_file.encrypted_content:
+                        if encrypted_file:
                             try:
                                 # Get the owner (user)
                                 owner = session_db.query(User).filter_by(id=data_entry.owner_id).first()
 
-                                # Decrypt the content
-                                key = encryption_key.encode() if isinstance(encryption_key, str) else encryption_key
-                                decrypted_content = decrypt_file(encrypted_file.encrypted_content, key)
+                                # Determine where to get the content from (IPFS or database)
+                                encrypted_content = None
+                                if encrypted_file.ipfs_cid:
+                                    # Get from IPFS
+                                    encrypted_content = blockchain.ipfs.get(encrypted_file.ipfs_cid)
+                                elif encrypted_file.encrypted_content:
+                                    # Get from database
+                                    encrypted_content = encrypted_file.encrypted_content
 
-                                # Detect file type and prepare preview
-                                is_csv = name.lower().endswith('.csv')
-                                content_preview = ""
-                                has_more = False
+                                if encrypted_content:
+                                    # Decrypt the content
+                                    key = encryption_key.encode() if isinstance(encryption_key, str) else encryption_key
+                                    decrypted_content = decrypt_file(encrypted_content, key)
 
-                                if is_csv:
-                                    # Parse CSV data
-                                    csv_content = decrypted_content.decode('utf-8')
-                                    csv_reader = csv.reader(io.StringIO(csv_content))
-                                    rows = []
-                                    for i, row in enumerate(csv_reader):
-                                        if i < 10:  # Show only first 10 rows
-                                            rows.append(row)
-                                        else:
-                                            has_more = True
-                                            break
-                                    content_preview = rows
-                                else:
-                                    # Text preview for other files
-                                    try:
-                                        text_content = decrypted_content.decode('utf-8')
-                                        if len(text_content) > 1000:
-                                            content_preview = text_content[:1000] + "..."
-                                            has_more = True
-                                        else:
-                                            content_preview = text_content
-                                    except UnicodeDecodeError:
-                                        content_preview = "Binary content (cannot display preview)"
+                                    # Detect file type and prepare preview
+                                    is_csv = name.lower().endswith('.csv')
+                                    content_preview = ""
+                                    has_more = False
 
-                                # Add to the decrypted data list
-                                decrypted_data.append({
-                                    'data_id': data_id,
-                                    'name': name,
-                                    'owner': owner.address if owner else 'Unknown',
-                                    'file_type': 'CSV' if is_csv else 'Text/Binary',
-                                    'content_preview': content_preview,
-                                    'is_csv': is_csv,
-                                    'has_more': has_more
-                                })
+                                    if is_csv:
+                                        # Parse CSV data
+                                        csv_content = decrypted_content.decode('utf-8')
+                                        csv_reader = csv.reader(io.StringIO(csv_content))
+                                        rows = []
+                                        for i, row in enumerate(csv_reader):
+                                            if i < 10:  # Show only first 10 rows
+                                                rows.append(row)
+                                            else:
+                                                has_more = True
+                                                break
+                                        content_preview = rows
+                                    else:
+                                        # Text preview for other files
+                                        try:
+                                            text_content = decrypted_content.decode('utf-8')
+                                            if len(text_content) > 1000:
+                                                content_preview = text_content[:1000] + "..."
+                                                has_more = True
+                                            else:
+                                                content_preview = text_content
+                                        except UnicodeDecodeError:
+                                            content_preview = "Binary content (cannot display preview)"
+
+                                    # Add to the decrypted data list
+                                    decrypted_data.append({
+                                        'data_id': data_id,
+                                        'name': name,
+                                        'owner': owner.address if owner else 'Unknown',
+                                        'file_type': 'CSV' if is_csv else 'Text/Binary',
+                                        'content_preview': content_preview,
+                                        'is_csv': is_csv,
+                                        'has_more': has_more,
+                                        'storage': 'IPFS' if encrypted_file.ipfs_cid else 'Database'
+                                    })
                             except Exception as e:
                                 print(f"Error decrypting {data_id}: {str(e)}")
 
@@ -259,6 +323,31 @@ def admin_database():
         session_db.close()
 
 
+@app.route('/admin/test-data-access/<data_id>')
+@admin_required
+def admin_test_data_access(data_id):
+    try:
+        # Get key info from the saved keys
+        key_data = get_key(data_id)
+        if not key_data:
+            return "No encryption key found for this data ID"
+
+        # Get the decrypted content
+        content = blockchain.get_data_file(
+            "user1_address",  # Use a test user address
+            data_id,
+            key_data["encryption_key"]
+        )
+
+        # For text/CSV content
+        try:
+            text_content = content.decode('utf-8')
+            return f"<h3>Successfully retrieved and decrypted {len(text_content)} characters of data</h3><pre>{text_content[:1000]}</pre>"
+        except:
+            return f"Successfully retrieved binary data of size {len(content)} bytes"
+
+    except Exception as e:
+        return f"Error accessing data: {str(e)}"
 # Blockchain status page
 @app.route('/admin/blockchain')
 @admin_required
@@ -505,6 +594,342 @@ def admin_download_data(data_id):
     except Exception as e:
         flash(f"Error downloading file: {str(e)}", "danger")
         return redirect(url_for('admin_database'))
+
+
+# Initialize the model trainer with IPFS
+model_trainer = ModelTrainer(blockchain.ipfs)
+
+
+@app.route('/training/available-datasets', methods=['GET'])
+def get_available_datasets():
+    """Get datasets available for training"""
+    if 'user_address' not in session:
+        return jsonify({"error": "Authentication required"}), 401
+
+    user_address = session.get('user_address')
+
+    db_manager = blockchain.db_manager
+    db_session = db_manager.get_session()
+
+    try:
+        # Get user object
+        user = db_session.query(User).filter_by(address=user_address).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Get datasets owned or purchased by user
+        owned_datasets = db_session.query(DataEntry).filter_by(owner_id=user.id).all()
+        purchased_datasets = user.purchased_data
+
+        # Combine and convert to JSON
+        all_datasets = []
+
+        for dataset in (list(owned_datasets) + list(purchased_datasets)):
+            metadata = json.loads(dataset.data_metadata) if dataset.data_metadata else {}
+
+            all_datasets.append({
+                "data_id": dataset.data_id,
+                "name": metadata.get("name", "Unnamed Dataset"),
+                "description": metadata.get("description", ""),
+                "owner": dataset.owner.address if dataset.owner else "Unknown",
+                "owned": dataset.owner_id == user.id
+            })
+
+        return jsonify({"datasets": all_datasets})
+    finally:
+        db_session.close()
+
+
+@app.route('/training/train-model', methods=['POST'])
+def train_model():
+    """Train a model on a dataset"""
+    if 'user_address' not in session:
+        return jsonify({"error": "Authentication required"}), 401
+
+    user_address = session.get('user_address')
+
+    # Get request data
+    data = request.json
+    dataset_id = data.get('dataset_id')
+    algorithm_type = data.get('algorithm_type')
+    target_column = data.get('target_column')
+    model_name = data.get('model_name', 'Unnamed Model')
+    model_description = data.get('model_description', '')
+
+    if not all([dataset_id, algorithm_type, target_column]):
+        return jsonify({"error": "Missing required parameters"}), 400
+
+    # Check access to dataset
+    try:
+        # Get dataset content
+        dataset_content = blockchain.get_data_file(user_address, dataset_id, data.get('encryption_key', ''))
+
+        if not dataset_content:
+            return jsonify({"error": "Could not retrieve dataset"}), 404
+
+        # Train the model
+        result = model_trainer.train_model(
+            dataset_content,
+            algorithm_type,
+            target_column,
+            data.get('algorithm_params', {})
+        )
+
+        if "error" in result:
+            return jsonify(result), 400
+
+        # Create model metadata
+        model_metadata = {
+            "name": model_name,
+            "description": model_description,
+            "algorithm_type": algorithm_type,
+            "target_column": target_column,
+            "dataset_id": dataset_id,
+            "training_metrics": result['metrics'],
+            "training_time": result['training_time'],
+            "features_count": result['features_count'],
+            "samples_count": result['samples_count'],
+            "creation_date": time.strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+        # Register the model in the blockchain
+        model_id, tx_id = blockchain.register_trained_model(
+            user_address,
+            dataset_id,
+            result['model_cid'],
+            model_metadata
+        )
+
+        # Return success with model information
+        return jsonify({
+            "success": True,
+            "model_id": model_id,
+            "transaction_id": tx_id,
+            "metrics": result['metrics'],
+            "training_time": result['training_time']
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/training/models', methods=['GET'])
+def get_user_models():
+    """Get models owned by the current user"""
+    if 'user_address' not in session:
+        return jsonify({"error": "Authentication required"}), 401
+
+    user_address = session.get('user_address')
+
+    db_manager = blockchain.db_manager
+    db_session = db_manager.get_session()
+
+    try:
+        # Get user object
+        user = db_session.query(User).filter_by(address=user_address).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Get models owned by user
+        models = db_session.query(ModelEntry).filter_by(owner_id=user.id).all()
+
+        # Convert to JSON
+        model_list = []
+
+        for model in models:
+            metadata = json.loads(model.model_metadata) if model.model_metadata else {}
+
+            model_list.append({
+                "model_id": model.model_id,
+                "name": metadata.get("name", "Unnamed Model"),
+                "description": metadata.get("description", ""),
+                "algorithm_type": metadata.get("algorithm_type", "Unknown"),
+                "target_column": metadata.get("target_column", ""),
+                "dataset_id": metadata.get("dataset_id", ""),
+                "metrics": metadata.get("training_metrics", {}),
+                "creation_date": metadata.get("creation_date", "")
+            })
+
+        return jsonify({"models": model_list})
+    finally:
+        db_session.close()
+
+
+@app.route('/training/model/<model_id>', methods=['GET'])
+def get_model_details(model_id):
+    """Get detailed information about a model"""
+    if 'user_address' not in session:
+        return jsonify({"error": "Authentication required"}), 401
+
+    user_address = session.get('user_address')
+
+    db_manager = blockchain.db_manager
+    db_session = db_manager.get_session()
+
+    try:
+        # Get model entry
+        model_entry = db_session.query(ModelEntry).filter_by(model_id=model_id).first()
+
+        if not model_entry:
+            return jsonify({"error": "Model not found"}), 404
+
+        # Check if user has access
+        user = db_session.query(User).filter_by(address=user_address).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        if model_entry.owner_id != user.id and user not in model_entry.purchased_by:
+            return jsonify({"error": "Access denied"}), 403
+
+        # Get model metadata
+        metadata = json.loads(model_entry.model_metadata) if model_entry.model_metadata else {}
+
+        # Get blockchain transactions related to this model
+        training_tx = None
+
+        for block in blockchain.chain:
+            for tx in block.transactions:
+                if tx.get("type") == "model_training" and tx.get("model_cid") == metadata.get("ipfs_cid"):
+                    training_tx = tx
+                    break
+            if training_tx:
+                break
+
+        # Combine information
+        model_details = {
+            "model_id": model_entry.model_id,
+            "name": metadata.get("name", "Unnamed Model"),
+            "description": metadata.get("description", ""),
+            "algorithm_type": metadata.get("algorithm_type", "Unknown"),
+            "target_column": metadata.get("target_column", ""),
+            "dataset_id": metadata.get("dataset_id", ""),
+            "metrics": metadata.get("training_metrics", {}),
+            "features_count": metadata.get("features_count", 0),
+            "samples_count": metadata.get("samples_count", 0),
+            "creation_date": metadata.get("creation_date", ""),
+            "owner": model_entry.owner.address if model_entry.owner else "Unknown",
+            "training_transaction": training_tx["transaction_id"] if training_tx else None,
+            "ipfs_cid": metadata.get("ipfs_cid", "")
+        }
+
+        return jsonify(model_details)
+    finally:
+        db_session.close()
+
+
+@app.route('/training/dashboard')
+def training_dashboard():
+    """View the training dashboard"""
+    if 'user_address' not in session:
+        # Redirect to login with 'next' parameter to return to dashboard after login
+        return redirect(url_for('login', next='training_dashboard'))
+
+    # User is authenticated, render the training dashboard
+    return render_template('training_dashboard.html')
+
+
+@app.route('/training/model/<model_id>/view')
+def view_model_details(model_id):
+    """View detailed model information"""
+    if 'user_address' not in session:
+        return redirect(url_for('index'))
+
+    user_address = session.get('user_address')
+
+    db_manager = blockchain.db_manager
+    db_session = db_manager.get_session()
+
+    try:
+        # Get model details
+        model_details = {}  # Get this from the API endpoint
+        response = requests.get(f'{request.url_root}training/model/{model_id}',
+                                headers={'Authorization': f'Bearer {session.get("token")}'})
+
+        if response.status_code != 200:
+            flash('Failed to load model details', 'danger')
+            return redirect(url_for('training_dashboard'))
+
+        model_data = response.json()
+
+        # Get dataset details if needed
+        dataset_data = {}
+        if model_data.get('dataset_id'):
+            dataset = db_session.query(DataEntry).filter_by(data_id=model_data['dataset_id']).first()
+            if dataset:
+                metadata = json.loads(dataset.data_metadata) if dataset.data_metadata else {}
+                dataset_data = {
+                    'data_id': dataset.data_id,
+                    'name': metadata.get('name', 'Unnamed Dataset'),
+                    'owner': dataset.owner.address if dataset.owner else 'Unknown'
+                }
+
+        # Get transaction timestamp
+        training_timestamp = "Unknown"
+        for block in blockchain.chain:
+            for tx in block.transactions:
+                if tx.get('transaction_id') == model_data.get('training_transaction'):
+                    training_timestamp = datetime.fromtimestamp(tx.get('timestamp')).strftime('%Y-%m-%d %H:%M:%S')
+                    break
+
+        return render_template('model_details.html',
+                               model=model_data,
+                               dataset=dataset_data,
+                               training_timestamp=training_timestamp)
+    finally:
+        db_session.close()
+@app.route('/training/model-predict/<model_id>', methods=['POST'])
+def predict_with_model(model_id):
+    """Use a model to make predictions"""
+    if 'user_address' not in session:
+        return jsonify({"error": "Authentication required"}), 401
+
+    user_address = session.get('user_address')
+
+    # Get prediction data from request
+    prediction_data = request.json.get('data')
+    if not prediction_data:
+        return jsonify({"error": "No prediction data provided"}), 400
+
+    db_manager = blockchain.db_manager
+    db_session = db_manager.get_session()
+
+    try:
+        # Get model entry
+        model_entry = db_session.query(ModelEntry).filter_by(model_id=model_id).first()
+
+        if not model_entry:
+            return jsonify({"error": "Model not found"}), 404
+
+        # Check if user has access
+        user = db_session.query(User).filter_by(address=user_address).first()
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        if model_entry.owner_id != user.id and user not in model_entry.purchased_by:
+            return jsonify({"error": "Access denied"}), 403
+
+        # Get IPFS CID from metadata
+        metadata = json.loads(model_entry.model_metadata) if model_entry.model_metadata else {}
+        ipfs_cid = metadata.get("ipfs_cid")
+
+        if not ipfs_cid:
+            return jsonify({"error": "Model not available in IPFS"}), 404
+
+        # Use the model to make predictions
+        prediction_result = model_trainer.predict(ipfs_cid, prediction_data)
+
+        if "error" in prediction_result:
+            return jsonify(prediction_result), 400
+
+        return jsonify({
+            "model_id": model_id,
+            "predictions": prediction_result["predictions"],
+            "timestamp": time.time()
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db_session.close()
 
 
 if __name__ == '__main__':

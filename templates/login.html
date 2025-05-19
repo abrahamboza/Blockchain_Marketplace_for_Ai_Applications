@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Blockchain Marketplace for AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 2rem;
+        }
+        .login-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .blockchain-logo {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="blockchain-logo">🔗</div>
+                <h2>Blockchain Marketplace</h2>
+                <p class="lead">Enter your blockchain address to continue</p>
+            </div>
+
+            <!-- Flash messages -->
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+
+            <form method="POST" action="{{ url_for('login', next=request.args.get('next', 'index')) }}">
+                <div class="mb-3">
+                    <label for="user_address" class="form-label">Blockchain Address</label>
+                    <input type="text" class="form-control" id="user_address" name="user_address"
+                           placeholder="Enter your blockchain address or wallet ID" required>
+                    <div class="form-text">This will be used to identify you on the blockchain network.</div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Back to Home</a>
+                </div>
+            </form>
+
+            <div class="mt-4 text-center">
+                <p class="text-muted">Don't have an address? For testing, you can use:</p>
+                <code>0x123456789abcdef0123456789abcdef01234567</code>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

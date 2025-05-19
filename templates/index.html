@@ -25,6 +25,27 @@
             padding: 1rem 2rem;
             font-size: 1.2rem;
         }
+        .feature-card {
+            transition: transform 0.3s;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            height: 100%;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .feature-section {
+            padding: 3rem 0;
+            background-color: white;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -35,27 +56,70 @@
         </div>
 
         <div class="row text-center">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <a href="/upload-dataset" class="btn btn-primary feature-button">Upload Dataset</a>
                 <p>Share your data securely on the blockchain</p>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <a href="/training/dashboard" class="btn btn-success feature-button">Train Models</a>
+                <p>Create AI models using your datasets</p>
+            </div>
+            <div class="col-md-3">
                 <a href="/view-blockchain" class="btn btn-secondary feature-button">View Blockchain</a>
                 <p>Explore the current state of the blockchain</p>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <a href="/admin" class="btn btn-danger feature-button">Admin Page</a>
                 <p>Access admin features (password required)</p>
             </div>
         </div>
 
-        <div class="row mt-5">
+        <!-- New Feature Section with Cards -->
+        <div class="feature-section">
+            <h2 class="text-center mb-4">Platform Features</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">🔒</div>
+                            <h5 class="card-title">Secure Data Exchange</h5>
+                            <p class="card-text">End-to-end encryption ensures your data remains private and secure.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">🔗</div>
+                            <h5 class="card-title">Blockchain Verification</h5>
+                            <p class="card-text">All transactions are recorded on a tamper-proof blockchain.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card">
+                        <div class="card-body text-center">
+                            <div class="feature-icon">🤖</div>
+                            <h5 class="card-title">ML Model Training</h5>
+                            <p class="card-text">Create and verify machine learning models directly on the platform.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
             <div class="col-12">
                 <h2>About This Platform</h2>
                 <p>
                     This decentralized marketplace allows users to securely share and trade data and
                     machine learning models. All transactions are recorded on a blockchain for
                     transparency and security. Data is encrypted and only accessible to authorized users.
+                </p>
+                <p>
+                    With our integrated machine learning capabilities, you can not only share data but also
+                    train models directly on the platform. The entire machine learning process is recorded
+                    on the blockchain, creating a verifiable lineage from data to model.
                 </p>
             </div>
         </div>
