@@ -1,34 +1,47 @@
-# 🔐 Blockchain Marketplace for AI Applications
+# 🔐 Dezentrale Sicherheit und mathematische Fundamente: Blockchain als Infrastruktur für datenbasierte Lernsysteme
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
 
-A decentralized marketplace for AI data and machine learning models, leveraging blockchain technology for transparency, security, and data ownership.
+**THN | Fakultät für Angewandte Mathematik und Physik**
 
-## 🌟 Overview
+---
 
-This project implements a secure, decentralized platform where AI researchers, data scientists, and organizations can share, discover, purchase, and monetize datasets and machine learning models. By utilizing blockchain technology, all transactions are transparent and immutable, while maintaining privacy through end-to-end encryption.
+## 🌟 Überblick
 
-## ✨ Key Features
+Dieses Projekt implementiert eine sichere, dezentralisierte Plattform, auf der KI-Forscher, Datenwissenschaftler und Organisationen Datensätze und Machine-Learning-Modelle teilen, entdecken, kaufen und monetarisieren können. Durch den Einsatz der Blockchain-Technologie werden alle Transaktionen transparent und unveränderlich gespeichert, während gleichzeitig die Privatsphäre durch Ende-zu-Ende-Verschlüsselung gewahrt bleibt.
 
-- **🔗 Blockchain Integration**: All transactions recorded on an immutable blockchain
-- **🔒 End-to-End Encryption**: All data is encrypted with only authorized users having access
-- **🏪 Decentralized Marketplace**: Upload, sell, purchase, and manage datasets and models
-- **👤 User Authentication**: Secure blockchain-based user identification
-- **🔍 Data Transparency**: View and verify all blockchain transactions
-- **🛡️ Data Ownership**: Clear provenance and ownership records
-- **⚙️ Admin Dashboard**: Comprehensive administrative interface with analytics
-- **📊 Database Management**: Synchronized relational database with blockchain data
+## ✨ Hauptfunktionen
 
-## 🛠️ Technology Stack
+- **🔗 Blockchain-Integration**: Alle Transaktionen werden auf einer unveränderlichen Blockchain protokolliert
+- **🔒 Ende-zu-Ende-Verschlüsselung**: Sämtliche Daten werden verschlüsselt, wobei nur autorisierte Nutzer Zugriff haben
+- **🏪 Dezentraler Marktplatz**: Upload, Verkauf, Kauf und Verwaltung von Datensätzen und Modellen
+- **👤 Benutzerauthentifizierung**: Sichere blockchain-basierte Benutzeridentifikation
+- **🔍 Datentransparenz**: Einsicht und Verifizierung aller Blockchain-Transaktionen
+- **🛡️ Datenhoheit**: Klare Herkunfts- und Eigentumsnachweise
+- **⚙️ Administrationsoberfläche**: Umfassende Verwaltungsschnittstelle mit Analysefunktionen
+- **📊 Datenbankmanagement**: Synchronisierte relationale Datenbank mit Blockchain-Daten
+- **📦 IPFS-Integration**: Dezentralisierte Speicherung von Datensätzen und Modellen
+- **🤖 Modelltraining-Funktionalität**: Direkte Erstellung von Machine-Learning-Modellen
+
+## 🧮 Mathematische Grundlagen
+
+Die Implementierung basiert auf folgenden kryptographischen und mathematischen Prinzipien:
+
+- **SHA-256 Hashing**: Sicherstellung der Blockchain-Integrität
+- **Proof-of-Work**: Konsensalgorithmus mit anpassbarer Schwierigkeit
+- **Kryptographische Signaturen**: Verifizierung und Authentifizierung von Transaktionen
+- **Symmetrische Verschlüsselung**: Fernet-basierte Verschlüsselung für sicheren Datenaustausch
+
+## 🛠️ Technologie-Stack
 
 - **Backend**: Python, Flask
-- **Database**: SQLite via SQLAlchemy ORM
-- **Encryption**: Cryptography library with Fernet symmetric encryption
+- **Datenbank**: SQLite via SQLAlchemy ORM
+- **Verschlüsselung**: Cryptography-Bibliothek mit Fernet
 - **Frontend**: HTML, CSS, Bootstrap 5, JavaScript
-- **Blockchain**: Custom Python blockchain implementation
+- **Blockchain**: Maßgeschneiderte Python-Blockchain-Implementierung
+- **Speicherung**: Simulierte IPFS-Integration
+- **Machine Learning**: Sklearn-basierte Modelltraining-Funktionalität
 
-## 🏗️ Architecture
+## 🏗️ Architektur
 
 ```
 ┌─────────────────────┐     ┌─────────────────────┐
@@ -59,157 +72,96 @@ This project implements a secure, decentralized platform where AI researchers, d
 └─────────────────────┘     └─────────────────────┘
 ```
 
-## 📂 Project Structure
+## 📂 Projektstruktur
 
 ```
-├── app.py                  # Main Flask application
-├── database.py             # Database models and connection management
-├── database_handling.py    # Database and blockchain synchronization
-├── encryption.py           # Encryption and decryption utilities
-├── key_manager.py          # Encryption key management
-├── marketplace.py          # Marketplace blockchain implementation
-├── db_manager_tool.py      # CLI tool for database management
-├── Blockchain/             # Core blockchain implementation
-│   └── blockchain.py       # Blockchain functionality
-├── Tests/                  # Test scripts
+├── app.py                  # Haupt-Flask-Anwendung
+├── database.py             # Datenbankmodelle und Verbindungsmanagement
+├── database_handling.py    # Datenbank- und Blockchain-Synchronisation
+├── encryption.py           # Verschlüsselungs- und Entschlüsselungs-Utilities
+├── key_manager.py          # Verwaltung der Verschlüsselungsschlüssel
+├── marketplace.py          # Marktplatz-Blockchain-Implementierung
+├── Blockchain/             # Kern-Blockchain-Implementierung
+│   └── blockchain.py       # Blockchain-Funktionalität
+├── Storage_IPFS_sim/       # IPFS-Simulationskomponente
+│   └── simulated_ipfs.py   # Simulierte IPFS-Implementierung
+├── Tests/                  # Testskripte
 │   ├── blockchain_test_basics.py
 │   ├── database_test.py
 │   └── marketplace_test.py
-└── templates/              # HTML templates for web UI
+└── templates/              # HTML-Vorlagen für Web-UI
 ```
+
+## 📱 Benutzeroberfläche
 
 ## 🚀 Installation & Setup
 
-### Prerequisites
+### Voraussetzungen
 
 - Python 3.8+
 - pip
 - Git
 
-### Installation Steps
+### Installationsschritte
 
-1. Clone the repository
+1. Repository klonen
    ```bash
    git clone https://github.com/yourusername/Blockchain_Marketplace_for_Ai_Applications.git
    cd Blockchain_Marketplace_for_Ai_Applications
    ```
 
-2. Create and activate a virtual environment
+2. Virtuelle Umgebung erstellen und aktivieren
    ```bash
    python -m venv .venv
    
-   # On Windows
+   # Unter Windows
    .\.venv\Scripts\activate
    
-   # On macOS/Linux
+   # Unter macOS/Linux
    source .venv/bin/activate
    ```
 
-3. Install dependencies
+3. Abhängigkeiten installieren
    ```bash
    pip install requirements.txt
    ```
 
-4. Initialize the database (with fresh reset)
+4. Datenbank initialisieren (mit Neusetzung)
    ```bash
    python app.py --reset
    ```
 
-5. Run the application
+5. Anwendung starten
    ```bash
    python app.py
    ```
 
-6. Access the web interface at http://localhost:5000
+6. Web-Interface unter http://localhost:5000 aufrufen
 
-## 📱 Usage Guide
+## 🔐 Sicherheitsmerkmale
 
-### For Users
+- **Ende-zu-Ende-Verschlüsselung**: Alle Dateien werden mit Fernet-symmetrischer Verschlüsselung gesichert
+- **Dezentrale Zugriffskontrolle**: Alle Berechtigungen werden über die Blockchain verifiziert
+- **Schlüsselverwaltung**: Verschlüsselungsschlüssel werden getrennt von den Daten verwaltet
+- **Blockchain-Verifikation**: Alle Transaktionen werden durch Konsensmechanismen verifiziert
 
-1. **Home Page**: Navigate through the main features of the marketplace
-2. **Upload Dataset**: Share datasets securely with optional pricing
-3. **View Blockchain**: Explore and verify all blockchain transactions
+## 🧪 Tests
 
-### For Data Scientists & Researchers
-
-1. **Data Access**: Purchase and securely access datasets and models
-2. **Encryption**: All transferred data is encrypted end-to-end
-3. **Verification**: Verify data authenticity through the blockchain
-
-### For Administrators
-
-1. **Admin Dashboard**: Access with password "passwort"
-2. **Database View**: Monitor all data, both encrypted and decrypted
-3. **System Reset**: Reset database and blockchain when needed
-4. **Data Management**: Download and manage all datasets
-
-## 🔐 Security Features
-
-- **End-to-End Encryption**: All files are encrypted with Fernet symmetric encryption
-- **Decentralized Access Control**: All permissions are verified via blockchain
-- **Key Management**: Encryption keys are managed separately from data
-- **Blockchain Verification**: All transactions verified through consensus mechanisms
-
-## 🧪 Testing
-
-To run the included test suite:
+Zum Ausführen der mitgelieferten Testsuite:
 
 ```bash
-# Test basic blockchain functionality
+# Test der grundlegenden Blockchain-Funktionalität
 python Tests/blockchain_test_basics.py
 
-# Test database connections
+# Test der Datenbankverbindungen
 python Tests/database_test.py
 
-# Test marketplace operations
+# Test der Marktplatzoperationen
 python Tests/marketplace_test.py
 ```
 
-## 🛠️ Administration
+## 👥 Autoren
 
-### Database Management Tool
+- [Florian Kuhlert] - Anfängliche Entwicklung und Konzeption
 
-A command-line tool is included for database operations:
-
-```bash
-# Reset the database entirely
-python db_manager_tool.py --reset
-
-# View database status
-python db_manager_tool.py --status
-
-# Clear encryption keys only
-python db_manager_tool.py --clean-keys
-```
-
-### System Reset
-
-You can also reset the system through the admin dashboard using the "Reset Entire System" button.
-
-## 🚧 Future Development
-
-- Peer-to-peer networking for true decentralization
-- Integration with IPFS for distributed storage
-- Smart contracts for automated transactions
-- Web3 wallet integration for cryptocurrency payments
-- Advanced analytics and recommendation engine
-- Mobile applications for iOS and Android
-
-
-## 📜 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 👥 Authors
-
-- Florian Kuhlert - Initial development and concept
-
-## 🙏 Acknowledgments
-
-- Bitcoin whitepaper for inspiration on blockchain architecture
-- Cryptography.io for encryption libraries
-- Flask and SQLAlchemy for web application foundation
-
----
-
-**Note**: This project is for demonstration and educational purposes.
+**Hinweis**: Dieses Projekt dient Demonstrations- und Bildungszwecken.
