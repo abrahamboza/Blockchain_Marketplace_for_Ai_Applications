@@ -417,7 +417,7 @@ class MarketplaceBlockchain(Blockchain):
         # Add Block to the chain
         self.chain.append(block)
 
-        # Speichere den Block in der Datenbank
+        # Save block in db
         try:
             self._save_block_to_database(block)
         except Exception as e:
