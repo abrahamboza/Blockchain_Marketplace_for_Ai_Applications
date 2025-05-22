@@ -26,6 +26,42 @@
     opacity: 0.9;
 }
 
+.mining-alert {
+    margin-bottom: 2rem;
+}
+
+.mining-banner {
+    background: linear-gradient(45deg, rgba(245, 158, 11, 0.1), rgba(16, 185, 129, 0.1));
+    border: 2px solid var(--warning-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+    animation: pulse-warning 3s infinite;
+}
+
+@keyframes pulse-warning {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.01); }
+}
+
+.mining-cta {
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    transition: all 0.3s;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+    to { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); }
+}
+
+.mining-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -45,6 +81,29 @@
 .stat-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card.pending {
+    border-left: 4px solid var(--warning-color);
+    background: linear-gradient(45deg, rgba(245, 158, 11, 0.05), rgba(255, 255, 255, 1));
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card.pending::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.1), transparent);
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
 }
 
 .stat-icon {
@@ -95,6 +154,48 @@
     color: var(--gray-500);
     font-size: 0.8rem;
     margin-top: 0.5rem;
+}
+
+.mine-action-btn {
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+.mine-action-btn:hover {
+    background: var(--success-dark);
+    transform: translateY(-1px);
+    color: white;
+}
+
+.mine-action-btn:disabled {
+    background: var(--gray-300);
+    cursor: not-allowed;
+}
+
+.pending-badge {
+    background: var(--warning-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    animation: blink 1.5s infinite;
+    margin-left: 0.5rem;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.6; }
 }
 
 .section-card {
@@ -252,6 +353,11 @@
     background-color: var(--gray-50);
 }
 
+.transaction-table tr.transaction-pending {
+    background: rgba(245, 158, 11, 0.05);
+    border-left: 3px solid var(--warning-color);
+}
+
 .tx-id {
     font-family: 'Courier New', monospace;
     color: var(--primary-color);
@@ -368,24 +474,38 @@
     .explorer-header h1 {
         font-size: 2rem;
     }
-    
+
     .stats-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1rem;
     }
-    
+
     .block-grid {
         grid-template-columns: 1fr;
         padding: 1rem;
     }
-    
+
     .transaction-table {
         font-size: 0.8rem;
     }
-    
+
     .transaction-table th,
     .transaction-table td {
         padding: 0.75rem 0.5rem;
+    }
+
+    .mining-banner {
+        padding: 1rem;
+    }
+
+    .mining-banner .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .mining-actions {
+        width: 100%;
+        text-align: center;
     }
 }
 {% endblock %}
@@ -411,12 +531,38 @@
     </section>
 
     <div class="container">
+        <!-- Mining Alert Banner (nur wenn pending transactions vorhanden) -->
+        {% if stats.pending_transactions > 0 %}
+        <div class="mining-alert">
+            <div class="alert alert-warning mining-banner" role="alert">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-exclamation-triangle-fill me-3 fs-4"></i>
+                        <div>
+                            <h5 class="mb-1">⛏️ Mining erforderlich!</h5>
+                            <p class="mb-0">
+                                <strong>{{ stats.pending_transactions }}</strong> Transaktionen warten auf Verarbeitung.
+                                Hilf mit, die Blockchain zu sichern und verdiene durch Mining!
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mining-actions">
+                        <a href="/mine" class="btn btn-success btn-lg mining-cta">
+                            <i class="bi bi-cpu me-2"></i>
+                            Jetzt minen
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Mining Status -->
         <div class="mining-status">
             <h6><i class="bi bi-cpu"></i>Network Status</h6>
             <p class="mb-0">
-                <strong>Difficulty:</strong> {{ stats.network_difficulty }} leading zeros | 
-                <strong>Average Block Time:</strong> {{ stats.average_block_time }} | 
+                <strong>Difficulty:</strong> {{ stats.network_difficulty }} leading zeros |
+                <strong>Average Block Time:</strong> {{ stats.average_block_time }} |
                 <strong>Last Block:</strong> {{ format_timestamp(stats.last_mined) }}
             </p>
         </div>
@@ -441,13 +587,31 @@
                 <div class="stat-detail">Across all blocks</div>
             </div>
 
-            <div class="stat-card">
+            <!-- Updated Pending Transactions Card with Mining Action -->
+            <div class="stat-card {{ 'pending' if stats.pending_transactions > 0 else '' }}">
                 <div class="stat-icon pending">
                     <i class="bi bi-clock-history"></i>
                 </div>
                 <div class="stat-value" id="pending-transactions">{{ stats.pending_transactions }}</div>
-                <div class="stat-label">Pending Transactions</div>
+                <div class="stat-label">
+                    Pending Transactions
+                    {% if stats.pending_transactions > 0 %}
+                    <span class="pending-badge">NEEDS MINING</span>
+                    {% endif %}
+                </div>
                 <div class="stat-detail">Waiting for mining</div>
+
+                {% if stats.pending_transactions > 0 %}
+                <a href="/mine" class="mine-action-btn">
+                    <i class="bi bi-cpu me-1"></i>
+                    Mine Now
+                </a>
+                {% else %}
+                <button class="mine-action-btn" disabled>
+                    <i class="bi bi-check-circle me-1"></i>
+                    All Clear
+                </button>
+                {% endif %}
             </div>
 
             <div class="stat-card">
@@ -471,7 +635,7 @@
                     <i class="bi bi-arrow-clockwise"></i> Refresh
                 </button>
             </div>
-            
+
             {% if recent_blocks %}
             <div class="block-grid">
                 {% for block in recent_blocks %}
@@ -480,11 +644,11 @@
                         <div class="block-index">Block #{{ block.index }}</div>
                         <div class="block-time">{{ format_timestamp(block.timestamp) }}</div>
                     </div>
-                    
+
                     <div class="block-hash">
                         <strong>Hash:</strong> {{ block.hash[:32] }}...
                     </div>
-                    
+
                     <div class="block-stats">
                         <div class="block-stat">
                             <span class="block-stat-value">{{ block.transaction_count }}</span>
@@ -522,7 +686,7 @@
                     <i class="bi bi-arrow-clockwise"></i> Refresh
                 </button>
             </div>
-            
+
             {% if recent_transactions %}
             <div class="table-responsive">
                 <table class="transaction-table">
@@ -539,7 +703,7 @@
                     </thead>
                     <tbody id="transactions-tbody">
                         {% for tx in recent_transactions %}
-                        <tr>
+                        <tr class="{{ 'transaction-pending' if tx.status == 'Pending' else '' }}">
                             <td><span class="tx-id">{{ tx.id }}</span></td>
                             <td>
                                 <span class="tx-type {{ tx.type.lower().replace(' ', '-') }}">
@@ -551,6 +715,9 @@
                             <td>
                                 <span class="tx-status {{ tx.status.lower() }}">
                                     {{ tx.status }}
+                                    {% if tx.status == 'Pending' %}
+                                    <i class="bi bi-hourglass-split ms-1"></i>
+                                    {% endif %}
                                 </span>
                             </td>
                             <td>
@@ -585,7 +752,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Auto-refresh every 30 seconds
     setInterval(updateLiveStats, 30000);
-    
+
     // Initial load complete
     console.log('Blockchain Explorer loaded successfully');
 });
@@ -599,13 +766,25 @@ function updateLiveStats() {
                 console.error('Error fetching stats:', data.error);
                 return;
             }
-            
+
             // Update statistics
             document.getElementById('total-blocks').textContent = data.total_blocks;
             document.getElementById('total-transactions').textContent = data.total_transactions;
             document.getElementById('pending-transactions').textContent = data.pending_transactions;
             document.getElementById('latest-hash').textContent = data.latest_block_hash;
-            
+
+            // Update mining alert banner
+            const currentPending = parseInt(document.getElementById('pending-transactions').textContent);
+            const miningAlert = document.querySelector('.mining-alert');
+
+            if (data.pending_transactions > 0 && !miningAlert) {
+                // Reload page to show mining banner
+                location.reload();
+            } else if (data.pending_transactions === 0 && miningAlert) {
+                // Hide mining banner
+                miningAlert.style.display = 'none';
+            }
+
             console.log('Stats updated:', data.last_update);
         })
         .catch(error => {
@@ -622,7 +801,7 @@ function viewBlockDetails(blockIndex) {
 function refreshBlocks() {
     const btn = document.querySelector('.refresh-btn');
     btn.classList.add('loading');
-    
+
     setTimeout(() => {
         location.reload();
     }, 500);
@@ -631,7 +810,7 @@ function refreshBlocks() {
 function refreshTransactions() {
     const btn = document.querySelectorAll('.refresh-btn')[1];
     btn.classList.add('loading');
-    
+
     setTimeout(() => {
         location.reload();
     }, 500);
@@ -646,7 +825,18 @@ document.addEventListener('keydown', function(e) {
             updateLiveStats();
         }
     }
-    
+
+    // M key for mining (if pending transactions exist)
+    if (e.key === 'm' || e.key === 'M') {
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            const pendingCount = parseInt(document.getElementById('pending-transactions').textContent);
+            if (pendingCount > 0) {
+                window.location.href = '/mine';
+            }
+        }
+    }
+
     // H key for home
     if (e.key === 'h' || e.key === 'H') {
         if (!e.ctrlKey && !e.metaKey) {
@@ -682,6 +872,18 @@ window.addEventListener('online', function() {
 window.addEventListener('offline', function() {
     connectionLost = true;
     console.warn('Connection lost - updates paused');
+});
+
+// Mining button click tracking
+document.querySelectorAll('.mine-action-btn, .mining-cta').forEach(button => {
+    button.addEventListener('click', function() {
+        console.log('Mining button clicked');
+        // Add click animation
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            this.style.transform = '';
+        }, 150);
+    });
 });
 </script>
 {% endblock %}

@@ -1,0 +1,1108 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Upload Dataset oder Model | Data Marketplace{% endblock %}
+
+{% block additional_styles %}
+.upload-section {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 200px);
+}
+
+.upload-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 3rem 0 2rem;
+    margin-bottom: 2rem;
+}
+
+.upload-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.upload-header .lead {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.upload-form-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.form-header {
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.form-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-dark);
+}
+
+.form-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.form-body {
+    padding: 2rem;
+}
+
+.upload-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.type-option {
+    padding: 1.5rem;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: white;
+}
+
+.type-option:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.type-option.active {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.type-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.type-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-dark);
+}
+
+.type-description {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.file-upload-area {
+    border: 2px dashed var(--gray-300);
+    border-radius: 8px;
+    padding: 2rem;
+    text-align: center;
+    background: var(--gray-50);
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 1.5rem;
+}
+
+.file-upload-area:hover {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.file-upload-area.dragover {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    color: var(--gray-600);
+    margin-bottom: 0.5rem;
+}
+
+.file-types {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+}
+
+.file-preview {
+    display: none;
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.file-details h5 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-dark);
+}
+
+.file-size {
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.remove-file {
+    margin-left: auto;
+    color: var(--danger-color);
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-label.required::after {
+    content: "*";
+    color: var(--danger-color);
+    margin-left: 0.25rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.3s;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.tags-input-container {
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    padding: 0.5rem;
+    min-height: 44px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-start;
+    cursor: text;
+}
+
+.tags-input-container:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.tag-item {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.tag-remove {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.tags-input {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 100px;
+    padding: 0.25rem;
+}
+
+.price-input-group {
+    position: relative;
+}
+
+.price-symbol {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-500);
+    font-weight: 500;
+}
+
+.price-input {
+    padding-left: 2rem;
+}
+
+.form-help {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-top: 0.25rem;
+}
+
+.dataset-specific,
+.model-specific {
+    display: none;
+}
+
+.submit-section {
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.submit-info {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+}
+
+.submit-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-submit {
+    padding: 0.75rem 2rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+.btn-submit:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-cancel {
+    padding: 0.75rem 1.5rem;
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-cancel:hover {
+    background: var(--gray-300);
+}
+
+.upload-progress {
+    display: none;
+    margin-top: 1rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    width: 0%;
+    transition: width 0.3s;
+}
+
+.progress-text {
+    text-align: center;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.info-card {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+}
+
+.info-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-text {
+    color: var(--gray-700);
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.security-features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.security-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+}
+
+.security-feature i {
+    color: var(--success-color);
+}
+
+@media (max-width: 768px) {
+    .upload-header h1 {
+        font-size: 2rem;
+    }
+    
+    .upload-type-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .submit-section {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .submit-actions {
+        width: 100%;
+        justify-content: center;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="upload-section">
+    <!-- Upload Header -->
+    <section class="upload-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h1><i class="bi bi-cloud-upload me-3"></i>Upload Dataset oder Model</h1>
+                    <p class="lead mb-0">Teile deine Daten oder ML-Modelle sicher auf der Blockchain</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Info Card -->
+                <div class="info-card">
+                    <div class="info-title">
+                        <i class="bi bi-shield-check"></i>
+                        Sicherer Upload mit Blockchain-Technologie
+                    </div>
+                    <p class="info-text">
+                        Deine Uploads werden automatisch verschlüsselt und in der Blockchain registriert. 
+                        Dies gewährleistet Datenschutz, Unveränderlichkeit und nachvollziehbare Eigentumsrechte.
+                    </p>
+                    <div class="security-features">
+                        <div class="security-feature">
+                            <i class="bi bi-lock-fill"></i>
+                            Ende-zu-Ende Verschlüsselung
+                        </div>
+                        <div class="security-feature">
+                            <i class="bi bi-shield-lock"></i>
+                            Blockchain-Verifikation
+                        </div>
+                        <div class="security-feature">
+                            <i class="bi bi-person-check"></i>
+                            Eigentumsnachweis
+                        </div>
+                        <div class="security-feature">
+                            <i class="bi bi-clock-history"></i>
+                            Unveränderliche Historie
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Form -->
+                <div class="upload-form-container">
+                    <div class="form-header">
+                        <h3 class="form-title">
+                            <i class="bi bi-plus-circle"></i>
+                            Neuen Upload erstellen
+                        </h3>
+                    </div>
+
+                    <form id="upload-form" method="POST" action="/upload-dataset" enctype="multipart/form-data">
+                        <div class="form-body">
+                            <!-- Upload Type Selection -->
+                            <div class="form-group">
+                                <label class="form-label required">Was möchtest du hochladen?</label>
+                                <div class="upload-type-selector">
+                                    <div class="type-option active" data-type="dataset">
+                                        <div class="type-icon">
+                                            <i class="bi bi-database"></i>
+                                        </div>
+                                        <div class="type-title">Dataset</div>
+                                        <div class="type-description">Rohdaten, CSV, JSON, Images, etc.</div>
+                                    </div>
+                                    <div class="type-option" data-type="model">
+                                        <div class="type-icon">
+                                            <i class="bi bi-cpu"></i>
+                                        </div>
+                                        <div class="type-title">ML-Model</div>
+                                        <div class="type-description">Trainierte Modelle, Weights, etc.</div>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="upload_type" id="upload_type" value="dataset">
+                            </div>
+
+                            <!-- File Upload -->
+                            <div class="form-group">
+                                <label class="form-label required">Datei auswählen</label>
+                                <div class="file-upload-area" id="file-upload-area">
+                                    <div class="upload-icon">
+                                        <i class="bi bi-cloud-upload"></i>
+                                    </div>
+                                    <div class="upload-text">
+                                        <strong>Klicke hier oder ziehe Dateien zum Hochladen</strong>
+                                    </div>
+                                    <div class="file-types" id="file-types">
+                                        Unterstützt: CSV, JSON, ZIP, Images, PKL, H5, ONNX
+                                    </div>
+                                </div>
+                                <input type="file" name="file" id="file-input" style="display: none;" 
+                                       accept=".csv,.json,.zip,.jpg,.jpeg,.png,.pkl,.h5,.onnx,.pt,.pth">
+                                
+                                <div class="file-preview" id="file-preview">
+                                    <div class="file-info">
+                                        <div class="file-icon">
+                                            <i class="bi bi-file-earmark"></i>
+                                        </div>
+                                        <div class="file-details">
+                                            <h5 id="file-name"></h5>
+                                            <div class="file-size" id="file-size"></div>
+                                        </div>
+                                        <div class="remove-file" onclick="removeFile()">
+                                            <i class="bi bi-x-circle"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Basic Information -->
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label class="form-label required" for="name">Name</label>
+                                    <input type="text" name="name" id="name" class="form-input" 
+                                           placeholder="z.B. Customer Behavior Dataset" required>
+                                    <div class="form-help">Ein aussagekräftiger Name für dein Upload</div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label required" for="category">Kategorie</label>
+                                    <select name="category" id="category" class="form-select" required>
+                                        <option value="">Kategorie wählen</option>
+                                        <option value="Business Analytics">Business Analytics</option>
+                                        <option value="Healthcare">Healthcare</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Computer Vision">Computer Vision</option>
+                                        <option value="Natural Language Processing">Natural Language Processing</option>
+                                        <option value="IoT">IoT</option>
+                                        <option value="Time Series">Time Series</option>
+                                        <option value="Social Media">Social Media</option>
+                                        <option value="Other">Andere</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label required" for="description">Beschreibung</label>
+                                <textarea name="description" id="description" class="form-textarea" 
+                                          placeholder="Beschreibe dein Dataset/Model ausführlich..." required></textarea>
+                                <div class="form-help">Je detaillierter, desto besser können andere Nutzer dein Upload bewerten</div>
+                            </div>
+
+                            <!-- Tags -->
+                            <div class="form-group">
+                                <label class="form-label" for="tags">Tags</label>
+                                <div class="tags-input-container" id="tags-container">
+                                    <input type="text" class="tags-input" id="tags-input" 
+                                           placeholder="Tags hinzufügen..." onkeydown="handleTagInput(event)">
+                                </div>
+                                <input type="hidden" name="tags" id="tags-hidden">
+                                <div class="form-help">Drücke Enter nach jedem Tag. z.B. "machine-learning", "classification"</div>
+                            </div>
+
+                            <!-- Dataset Specific Fields -->
+                            <div class="dataset-specific" id="dataset-fields">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label" for="samples">Anzahl Samples</label>
+                                        <input type="number" name="samples" id="samples" class="form-input" 
+                                               placeholder="z.B. 10000" min="1">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="features">Anzahl Features</label>
+                                        <input type="number" name="features" id="features" class="form-input" 
+                                               placeholder="z.B. 15" min="1">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="format">Datenformat</label>
+                                    <select name="format" id="format" class="form-select">
+                                        <option value="">Format wählen</option>
+                                        <option value="CSV">CSV</option>
+                                        <option value="JSON">JSON</option>
+                                        <option value="Images">Images</option>
+                                        <option value="Excel">Excel</option>
+                                        <option value="Parquet">Parquet</option>
+                                        <option value="Other">Andere</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Model Specific Fields -->
+                            <div class="model-specific" id="model-fields">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label" for="framework">Framework</label>
+                                        <select name="framework" id="framework" class="form-select">
+                                            <option value="">Framework wählen</option>
+                                            <option value="TensorFlow">TensorFlow</option>
+                                            <option value="PyTorch">PyTorch</option>
+                                            <option value="Scikit-learn">Scikit-learn</option>
+                                            <option value="XGBoost">XGBoost</option>
+                                            <option value="Keras">Keras</option>
+                                            <option value="Other">Andere</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="model_type">Model-Typ</label>
+                                        <input type="text" name="model_type" id="model_type" class="form-input" 
+                                               placeholder="z.B. Convolutional Neural Network">
+                                    </div>
+                                </div>
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label" for="accuracy">Genauigkeit</label>
+                                        <input type="text" name="accuracy" id="accuracy" class="form-input" 
+                                               placeholder="z.B. 95.2%">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label" for="parameters">Parameter</label>
+                                        <input type="text" name="parameters" id="parameters" class="form-input" 
+                                               placeholder="z.B. 23.5M">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label" for="training_dataset">Trainings-Dataset</label>
+                                    <input type="text" name="training_dataset" id="training_dataset" class="form-input" 
+                                           placeholder="z.B. ImageNet + Custom Dataset">
+                                </div>
+                            </div>
+
+                            <!-- Price -->
+                            <div class="form-group">
+                                <label class="form-label required" for="price">Preis</label>
+                                <div class="price-input-group">
+                                    <span class="price-symbol">$</span>
+                                    <input type="number" name="price" id="price" class="form-input price-input" 
+                                           placeholder="0.00" step="0.01" min="0" required>
+                                </div>
+                                <div class="form-help">Setze den Preis auf 0 für kostenlose Uploads</div>
+                            </div>
+                        </div>
+
+                        <!-- Submit Section -->
+                        <div class="submit-section">
+                            <div class="submit-info">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Upload wird verschlüsselt und in der Blockchain gespeichert
+                            </div>
+                            <div class="submit-actions">
+                                <a href="/marketplace" class="btn-cancel">Abbrechen</a>
+                                <button type="submit" class="btn-submit" id="submit-btn">
+                                    <i class="bi bi-cloud-upload me-2"></i>
+                                    Hochladen
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Upload Progress -->
+                        <div class="upload-progress" id="upload-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-text" id="progress-text">Upload wird verarbeitet...</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize upload functionality
+    initializeUpload();
+});
+
+function initializeUpload() {
+    // Upload type selection
+    const typeOptions = document.querySelectorAll('.type-option');
+    const uploadTypeInput = document.getElementById('upload_type');
+    const datasetFields = document.getElementById('dataset-fields');
+    const modelFields = document.getElementById('model-fields');
+    const fileTypes = document.getElementById('file-types');
+
+    typeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove active class from all options
+            typeOptions.forEach(opt => opt.classList.remove('active'));
+            
+            // Add active class to clicked option
+            this.classList.add('active');
+            
+            // Update hidden input
+            const type = this.getAttribute('data-type');
+            uploadTypeInput.value = type;
+            
+            // Show/hide specific fields
+            if (type === 'dataset') {
+                datasetFields.style.display = 'block';
+                modelFields.style.display = 'none';
+                fileTypes.textContent = 'Unterstützt: CSV, JSON, ZIP, Images, Excel, Parquet';
+                document.getElementById('file-input').accept = '.csv,.json,.zip,.jpg,.jpeg,.png,.xlsx,.xls,.parquet';
+            } else {
+                datasetFields.style.display = 'none';
+                modelFields.style.display = 'block';
+                fileTypes.textContent = 'Unterstützt: PKL, H5, ONNX, PT, PTH, ZIP';
+                document.getElementById('file-input').accept = '.pkl,.h5,.onnx,.pt,.pth,.zip';
+            }
+        });
+    });
+
+    // File upload functionality
+    const fileUploadArea = document.getElementById('file-upload-area');
+    const fileInput = document.getElementById('file-input');
+    const filePreview = document.getElementById('file-preview');
+
+    // Click to upload
+    fileUploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    // Drag and drop
+    fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFileSelect(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelect(e.target.files[0]);
+        }
+    });
+
+    // Form submission
+    const form = document.getElementById('upload-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const uploadProgress = document.getElementById('upload-progress');
+
+    form.addEventListener('submit', function(e) {
+        // Validate required fields
+        if (!validateForm()) {
+            e.preventDefault();
+            return;
+        }
+
+        // Show upload progress
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Wird hochgeladen...';
+        uploadProgress.style.display = 'block';
+
+        // Simulate progress (in real app, this would track actual upload)
+        simulateUploadProgress();
+    });
+}
+
+function handleFileSelect(file) {
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const fileUploadArea = document.getElementById('file-upload-area');
+
+    // Update preview
+    fileName.textContent = file.name;
+    fileSize.textContent = formatFileSize(file.size);
+
+    // Show preview, hide upload area
+    filePreview.style.display = 'block';
+    fileUploadArea.style.display = 'none';
+
+    // Auto-fill name if empty
+    const nameInput = document.getElementById('name');
+    if (!nameInput.value) {
+        nameInput.value = file.name.split('.')[0];
+    }
+}
+
+function removeFile() {
+    const fileInput = document.getElementById('file-input');
+    const filePreview = document.getElementById('file-preview');
+    const fileUploadArea = document.getElementById('file-upload-area');
+
+    // Clear file input
+    fileInput.value = '';
+
+    // Hide preview, show upload area
+    filePreview.style.display = 'none';
+    fileUploadArea.style.display = 'block';
+}
+
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Tags functionality
+let tags = [];
+
+function handleTagInput(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const input = event.target;
+        const tag = input.value.trim().toLowerCase();
+        
+        if (tag && !tags.includes(tag)) {
+            tags.push(tag);
+            addTagToContainer(tag);
+            input.value = '';
+            updateTagsHidden();
+        }
+    }
+}
+
+function addTagToContainer(tag) {
+    const container = document.getElementById('tags-container');
+    const input = document.getElementById('tags-input');
+    
+    const tagElement = document.createElement('div');
+    tagElement.className = 'tag-item';
+    tagElement.innerHTML = `
+        ${tag}
+        <span class="tag-remove" onclick="removeTag('${tag}')">&times;</span>
+    `;
+    
+    container.insertBefore(tagElement, input);
+}
+
+function removeTag(tag) {
+    tags = tags.filter(t => t !== tag);
+    updateTagsHidden();
+    
+    // Remove from DOM
+    const tagElements = document.querySelectorAll('.tag-item');
+    tagElements.forEach(el => {
+        if (el.textContent.trim().startsWith(tag)) {
+            el.remove();
+        }
+    });
+}
+
+function updateTagsHidden() {
+    document.getElementById('tags-hidden').value = tags.join(',');
+}
+
+function validateForm() {
+    const requiredFields = ['name', 'category', 'description', 'price'];
+    const fileInput = document.getElementById('file-input');
+    
+    // Check if file is selected
+    if (!fileInput.files.length) {
+        alert('Bitte wähle eine Datei zum Hochladen aus.');
+        return false;
+    }
+    
+    // Check required fields
+    for (const field of requiredFields) {
+        const input = document.getElementById(field);
+        if (!input.value.trim()) {
+            alert(`Bitte fülle das Feld "${input.previousElementSibling.textContent}" aus.`);
+            input.focus();
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+function simulateUploadProgress() {
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += Math.random() * 15;
+        if (progress > 100) progress = 100;
+        
+        progressFill.style.width = progress + '%';
+        
+        if (progress < 30) {
+            progressText.textContent = 'Datei wird verschlüsselt...';
+        } else if (progress < 60) {
+            progressText.textContent = 'Upload zur Blockchain...';
+        } else if (progress < 90) {
+            progressText.textContent = 'Transaktion wird verarbeitet...';
+        } else {
+            progressText.textContent = 'Fast fertig...';
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            progressText.textContent = 'Upload erfolgreich!';
+        }
+    }, 200);
+}
+
+// Form field enhancements
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-resize textarea
+    const textarea = document.getElementById('description');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Price input formatting
+    const priceInput = document.getElementById('price');
+    priceInput.addEventListener('blur', function() {
+        if (this.value) {
+            this.value = parseFloat(this.value).toFixed(2);
+        }
+    });
+    
+    // Sample count formatting
+    const samplesInput = document.getElementById('samples');
+    if (samplesInput) {
+        samplesInput.addEventListener('input', function() {
+            // Remove non-numeric characters
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+    
+    // Features count formatting
+    const featuresInput = document.getElementById('features');
+    if (featuresInput) {
+        featuresInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Ctrl/Cmd + S to save (submit form)
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        document.getElementById('upload-form').submit();
+    }
+    
+    // Escape to cancel
+    if (e.key === 'Escape') {
+        if (confirm('Upload abbrechen? Alle eingegebenen Daten gehen verloren.')) {
+            window.location.href = '/marketplace';
+        }
+    }
+});
+
+// Auto-save to localStorage (optional enhancement)
+function autoSave() {
+    const formData = {
+        name: document.getElementById('name').value,
+        category: document.getElementById('category').value,
+        description: document.getElementById('description').value,
+        price: document.getElementById('price').value,
+        tags: tags,
+        upload_type: document.getElementById('upload_type').value
+    };
+    
+    localStorage.setItem('upload_draft', JSON.stringify(formData));
+}
+
+// Load auto-saved data
+function loadAutoSave() {
+    const saved = localStorage.getItem('upload_draft');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            
+            document.getElementById('name').value = data.name || '';
+            document.getElementById('category').value = data.category || '';
+            document.getElementById('description').value = data.description || '';
+            document.getElementById('price').value = data.price || '';
+            
+            if (data.tags) {
+                tags = data.tags;
+                data.tags.forEach(tag => addTagToContainer(tag));
+                updateTagsHidden();
+            }
+            
+            if (data.upload_type) {
+                const typeOption = document.querySelector(`[data-type="${data.upload_type}"]`);
+                if (typeOption) {
+                    typeOption.click();
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load auto-saved data:', e);
+        }
+    }
+}
+
+// Auto-save every 30 seconds
+setInterval(autoSave, 30000);
+
+// Load auto-save on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Ask user if they want to restore draft
+    if (localStorage.getItem('upload_draft')) {
+        if (confirm('Es wurde ein Entwurf gefunden. Möchtest du ihn wiederherstellen?')) {
+            loadAutoSave();
+        } else {
+            localStorage.removeItem('upload_draft');
+        }
+    }
+});
+
+// Clear auto-save on successful submission
+document.getElementById('upload-form').addEventListener('submit', function() {
+    localStorage.removeItem('upload_draft');
+});
+
+// Warning before leaving page with unsaved changes
+let hasChanges = false;
+
+document.querySelectorAll('input, textarea, select').forEach(element => {
+    element.addEventListener('change', () => {
+        hasChanges = true;
+    });
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// Mark form as submitted to prevent warning
+document.getElementById('upload-form').addEventListener('submit', function() {
+    hasChanges = false;
+});
+</script>
+{% endblock %}

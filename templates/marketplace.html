@@ -604,20 +604,14 @@
                         </form>
                         
                         <div class="quick-filters">
+                            <a href="/marketplace" class="quick-filter {{ 'active' if not filters.type or filters.type == 'all' else '' }}">
+                                <i class="bi bi-grid me-1"></i>Alle Items
+                            </a>
                             <a href="/marketplace?type=data" class="quick-filter {{ 'active' if filters.type == 'data' else '' }}">
                                 <i class="bi bi-database me-1"></i>Datensätze
                             </a>
                             <a href="/marketplace?type=models" class="quick-filter {{ 'active' if filters.type == 'models' else '' }}">
                                 <i class="bi bi-cpu me-1"></i>ML-Modelle
-                            </a>
-                            <a href="/marketplace?category=Healthcare" class="quick-filter {{ 'active' if filters.category == 'Healthcare' else '' }}">
-                                <i class="bi bi-heart-pulse me-1"></i>Healthcare
-                            </a>
-                            <a href="/marketplace?category=Finance" class="quick-filter {{ 'active' if filters.category == 'Finance' else '' }}">
-                                <i class="bi bi-graph-up me-1"></i>Finance
-                            </a>
-                            <a href="/marketplace" class="quick-filter">
-                                <i class="bi bi-grid me-1"></i>Alle
                             </a>
                         </div>
                     </div>
@@ -634,22 +628,22 @@
                     <h3 class="sidebar-title">
                         <i class="bi bi-funnel me-2"></i>Filter
                     </h3>
-                    
+
                     <form method="GET" action="/marketplace" id="filter-form">
                         <!-- Keep search query -->
                         {% if filters.search %}
                         <input type="hidden" name="search" value="{{ filters.search }}">
                         {% endif %}
-                        
+
                         <div class="filter-group">
                             <label class="filter-label">Typ</label>
                             <select name="type" class="filter-select" onchange="submitForm()">
-                                <option value="all" {{ 'selected' if filters.type == 'all' else '' }}>Alle</option>
+                                <option value="all" {{ 'selected' if filters.type == 'all' or not filters.type else '' }}>Alle</option>
                                 <option value="data" {{ 'selected' if filters.type == 'data' else '' }}>Datensätze</option>
                                 <option value="models" {{ 'selected' if filters.type == 'models' else '' }}>ML-Modelle</option>
                             </select>
                         </div>
-                        
+
                         <div class="filter-group">
                             <label class="filter-label">Kategorie</label>
                             <select name="category" class="filter-select" onchange="submitForm()">
@@ -661,20 +655,20 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        
+
                         <div class="filter-group">
                             <label class="filter-label">Preisspanne ($)</label>
                             <div class="price-range">
-                                <input type="number" name="price_min" class="filter-input" 
-                                       placeholder="Min" value="{{ filters.price_min or '' }}" 
+                                <input type="number" name="price_min" class="filter-input"
+                                       placeholder="Min" value="{{ filters.price_min or '' }}"
                                        min="0" step="0.01">
                                 <span class="price-separator">-</span>
-                                <input type="number" name="price_max" class="filter-input" 
-                                       placeholder="Max" value="{{ filters.price_max or '' }}" 
+                                <input type="number" name="price_max" class="filter-input"
+                                       placeholder="Max" value="{{ filters.price_max or '' }}"
                                        min="0" step="0.01">
                             </div>
                         </div>
-                        
+
                         <div class="filter-group">
                             <label class="filter-label">Sortierung</label>
                             <select name="sort" class="filter-select" onchange="submitForm()">
@@ -685,18 +679,17 @@
                                 <option value="name" {{ 'selected' if filters.sort == 'name' else '' }}>Name A-Z</option>
                             </select>
                         </div>
-                        
+
                         <button type="submit" class="clear-filters-btn w-100 mt-3">
                             <i class="bi bi-check me-2"></i>Filter anwenden
                         </button>
                     </form>
-                    
-                    {% if filters.search or filters.category or filters.type != 'all' or filters.price_min or filters.price_max %}
-                    <a href="/marketplace" class="clear-filters-btn">
-                        <i class="bi bi-arrow-clockwise me-2"></i>Alle Filter zurücksetzen
+
+                    {% if filters.search or filters.category or (filters.type and filters.type != 'all') or filters.price_min or filters.price_max %}
+                    <a href="/marketplace" class="clear-filters-btn w-100 mt-2" style="background: var(--gray-500);">
+                        <i class="bi bi-x me-2"></i>Filter zurücksetzen
                     </a>
-                </div>
-                {% endif %}
+                    {% endif %}
                 </div>
 
                 <div class="sidebar-section">
@@ -752,7 +745,7 @@
 
                 <!-- Active Filters Display -->
                 {% set active_filters = [] %}
-                {% if filters.type != 'all' %}{% set _ = active_filters.append(('Typ', filters.type.title())) %}{% endif %}
+                {% if filters.type and filters.type != 'all' %}{% set _ = active_filters.append(('Typ', filters.type.title())) %}{% endif %}
                 {% if filters.category %}{% set _ = active_filters.append(('Kategorie', filters.category)) %}{% endif %}
                 {% if filters.search %}{% set _ = active_filters.append(('Suche', filters.search)) %}{% endif %}
                 {% if filters.price_min %}{% set _ = active_filters.append(('Min. Preis', '$' + filters.price_min|string)) %}{% endif %}
@@ -883,121 +876,121 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize marketplace
-    console.log('Marketplace loaded with {{ stats.filtered_count }} items');
-    
-    // Auto-submit form on filter changes (with debounce)
-    let filterTimeout;
-    const priceInputs = document.querySelectorAll('input[name="price_min"], input[name="price_max"]');
-    
-    priceInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            clearTimeout(filterTimeout);
-            filterTimeout = setTimeout(() => {
-                document.getElementById('filter-form').submit();
-            }, 1000); // Wait 1 second after user stops typing
-        });
-    });
+   // Initialize marketplace
+   console.log('Marketplace loaded with {{ stats.filtered_count }} items');
+
+   // Auto-submit form on filter changes (with debounce)
+   let filterTimeout;
+   const priceInputs = document.querySelectorAll('input[name="price_min"], input[name="price_max"]');
+
+   priceInputs.forEach(input => {
+       input.addEventListener('input', function() {
+           clearTimeout(filterTimeout);
+           filterTimeout = setTimeout(() => {
+               document.getElementById('filter-form').submit();
+           }, 1000); // Wait 1 second after user stops typing
+       });
+   });
 });
 
 // Form submission helper
 function submitForm() {
-    document.getElementById('filter-form').submit();
+   document.getElementById('filter-form').submit();
 }
 
 // View switching
 function switchView(viewType) {
-    const gridView = document.getElementById('grid-view');
-    const listView = document.getElementById('list-view');
-    const gridBtn = document.getElementById('grid-btn');
-    const listBtn = document.getElementById('list-btn');
-    
-    if (viewType === 'grid') {
-        gridView.style.display = 'grid';
-        listView.style.display = 'none';
-        gridBtn.classList.add('active');
-        listBtn.classList.remove('active');
-        localStorage.setItem('marketplace-view', 'grid');
-    } else {
-        gridView.style.display = 'none';
-        listView.style.display = 'flex';
-        gridBtn.classList.remove('active');
-        listBtn.classList.add('active');
-        localStorage.setItem('marketplace-view', 'list');
-    }
+   const gridView = document.getElementById('grid-view');
+   const listView = document.getElementById('list-view');
+   const gridBtn = document.getElementById('grid-btn');
+   const listBtn = document.getElementById('list-btn');
+
+   if (viewType === 'grid') {
+       gridView.style.display = 'grid';
+       listView.style.display = 'none';
+       gridBtn.classList.add('active');
+       listBtn.classList.remove('active');
+       localStorage.setItem('marketplace-view', 'grid');
+   } else {
+       gridView.style.display = 'none';
+       listView.style.display = 'flex';
+       gridBtn.classList.remove('active');
+       listBtn.classList.add('active');
+       localStorage.setItem('marketplace-view', 'list');
+   }
 }
 
 // Restore saved view preference
 document.addEventListener('DOMContentLoaded', function() {
-    const savedView = localStorage.getItem('marketplace-view');
-    if (savedView === 'list') {
-        switchView('list');
-    }
+   const savedView = localStorage.getItem('marketplace-view');
+   if (savedView === 'list') {
+       switchView('list');
+   }
 });
 
 // Navigate to item details
 function viewItem(itemId) {
-    window.location.href = `/marketplace/item/${itemId}`;
+   window.location.href = `/marketplace/item/${itemId}`;
 }
 
 // Remove individual filters
 function removeFilter(filterType) {
-    const form = document.getElementById('filter-form');
-    const url = new URL(window.location);
-    
-    switch(filterType) {
-        case 'Typ':
-            url.searchParams.set('type', 'all');
-            break;
-        case 'Kategorie':
-            url.searchParams.delete('category');
-            break;
-        case 'Suche':
-            url.searchParams.delete('search');
-            break;
-        case 'Min. Preis':
-            url.searchParams.delete('price_min');
-            break;
-        case 'Max. Preis':
-            url.searchParams.delete('price_max');
-            break;
-    }
-    
-    window.location.href = url.toString();
+   const form = document.getElementById('filter-form');
+   const url = new URL(window.location);
+
+   switch(filterType) {
+       case 'Typ':
+           url.searchParams.set('type', 'all');
+           break;
+       case 'Kategorie':
+           url.searchParams.delete('category');
+           break;
+       case 'Suche':
+           url.searchParams.delete('search');
+           break;
+       case 'Min. Preis':
+           url.searchParams.delete('price_min');
+           break;
+       case 'Max. Preis':
+           url.searchParams.delete('price_max');
+           break;
+   }
+
+   window.location.href = url.toString();
 }
 
 // Keyboard shortcuts
 document.addEventListener('keydown', function(e) {
-    // Focus search on '/' key
-    if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        document.querySelector('input[name="search"]').focus();
-    }
-    
-    // Toggle view with 'v' key
-    if (e.key === 'v' || e.key === 'V') {
-        if (!e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            const currentView = localStorage.getItem('marketplace-view') || 'grid';
-            switchView(currentView === 'grid' ? 'list' : 'grid');
-        }
-    }
-    
-    // Clear filters with 'c' key
-    if (e.key === 'c' || e.key === 'C') {
-        if (!e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            window.location.href = '/marketplace';
-        }
-    }
+   // Focus search on '/' key
+   if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
+       e.preventDefault();
+       document.querySelector('input[name="search"]').focus();
+   }
+
+   // Toggle view with 'v' key
+   if (e.key === 'v' || e.key === 'V') {
+       if (!e.ctrlKey && !e.metaKey) {
+           e.preventDefault();
+           const currentView = localStorage.getItem('marketplace-view') || 'grid';
+           switchView(currentView === 'grid' ? 'list' : 'grid');
+       }
+   }
+
+   // Clear filters with 'c' key
+   if (e.key === 'c' || e.key === 'C') {
+       if (!e.ctrlKey && !e.metaKey) {
+           e.preventDefault();
+           window.location.href = '/marketplace';
+       }
+   }
 });
 
 // Add loading states to item cards
 document.querySelectorAll('.item-card, .list-item').forEach(card => {
-    card.addEventListener('click', function() {
-        this.style.opacity = '0.7';
-        this.style.transform = 'scale(0.98)';
-    });
+   card.addEventListener('click', function() {
+       this.style.opacity = '0.7';
+       this.style.transform = 'scale(0.98)';
+   });
 });
 
 // Price range validation
@@ -1005,465 +998,95 @@ const priceMinInput = document.querySelector('input[name="price_min"]');
 const priceMaxInput = document.querySelector('input[name="price_max"]');
 
 if (priceMinInput && priceMaxInput) {
-    priceMinInput.addEventListener('change', function() {
-        const minValue = parseFloat(this.value);
-        const maxValue = parseFloat(priceMaxInput.value);
-        
-        if (minValue && maxValue && minValue > maxValue) {
-            priceMaxInput.value = minValue;
-        }
-    });
+   priceMinInput.addEventListener('change', function() {
+       const minValue = parseFloat(this.value);
+       const maxValue = parseFloat(priceMaxInput.value);
 
-    priceMaxInput.addEventListener('change', function() {
-        const minValue = parseFloat(priceMinInput.value);
-        const maxValue = parseFloat(this.value);
-        
-        if (minValue && maxValue && maxValue < minValue) {
-            priceMinInput.value = maxValue;
-        }
-    });
+       if (minValue && maxValue && minValue > maxValue) {
+           priceMaxInput.value = minValue;
+       }
+   });
+
+   priceMaxInput.addEventListener('change', function() {
+       const minValue = parseFloat(priceMinInput.value);
+       const maxValue = parseFloat(this.value);
+
+       if (minValue && maxValue && maxValue < minValue) {
+           priceMinInput.value = maxValue;
+       }
+   });
 }
 
 // Search input enhancements
 const searchInput = document.querySelector('input[name="search"]');
 if (searchInput) {
-    let searchTimeout;
-    
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        const query = this.value.trim();
-        
-        if (query.length > 2) {
-            searchTimeout = setTimeout(() => {
-                console.log('Search suggestions for:', query);
-            }, 300);
-        }
-    });
+   let searchTimeout;
+
+   searchInput.addEventListener('input', function() {
+       clearTimeout(searchTimeout);
+       const query = this.value.trim();
+
+       if (query.length > 2) {
+           searchTimeout = setTimeout(() => {
+               console.log('Search suggestions for:', query);
+           }, 300);
+       }
+   });
 }
 
 // Form validation
 const form = document.getElementById('filter-form');
 if (form) {
-    form.addEventListener('submit', function(e) {
-        const priceMin = priceMinInput ? priceMinInput.value : '';
-        const priceMax = priceMaxInput ? priceMaxInput.value : '';
-        
-        if (priceMin && priceMax && parseFloat(priceMin) > parseFloat(priceMax)) {
-            e.preventDefault();
-            alert('Der Mindestpreis kann nicht höher als der Höchstpreis sein.');
-            return false;
-        }
-        
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Lädt...';
-            submitBtn.disabled = true;
-        }
-    });
-}
-</script>
-{% endblock %}-filters-btn w-100 mt-2" style="background: var(--gray-500);">
-                        <i class="bi bi-x me-2"></i>Filter zurücksetzen
-                    </a>
-                    {% endif %}
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3 class="sidebar-title">
-                        <i class="bi bi-bar-chart me-2"></i>Statistiken
-                    </h3>
-                    
-                    <div class="stats-card mb-3">
-                        <span class="stat-number">{{ stats.total_items }}</span>
-                        <div class="stat-label">Gesamt Items</div>
-                    </div>
-                    
-                    <div class="stats-card mb-3">
-                        <span class="stat-number">{{ stats.datasets }}</span>
-                        <div class="stat-label">Datensätze</div>
-                    </div>
-                    
-                    <div class="stats-card mb-3">
-                        <span class="stat-number">{{ stats.models }}</span>
-                        <div class="stat-label">ML-Modelle</div>
-                    </div>
-                    
-                    <div class="stats-card">
-                        <span class="stat-number">${{ "%.0f"|format(stats.avg_price) }}</span>
-                        <div class="stat-label">Ø Preis</div>
-                    </div>
-                </div>
-            </div>
+   form.addEventListener('submit', function(e) {
+       const priceMin = priceMinInput ? priceMinInput.value : '';
+       const priceMax = priceMaxInput ? priceMaxInput.value : '';
 
-            <!-- Main Content -->
-            <div class="main-content">
-                <!-- Results Header -->
-                <div class="results-header">
-                    <div class="results-info">
-                        <span class="results-count">{{ stats.filtered_count }}</span> 
-                        von {{ stats.total_items }} Items
-                        {% if filters.search %}
-                        für "<strong>{{ filters.search }}</strong>"
-                        {% endif %}
-                    </div>
-                    
-                    <div class="sort-controls">
-                        <div class="view-toggle">
-                            <button class="view-btn active" onclick="switchView('grid')" id="grid-btn">
-                                <i class="bi bi-grid"></i>
-                            </button>
-                            <button class="view-btn" onclick="switchView('list')" id="list-btn">
-                                <i class="bi bi-list"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+       if (priceMin && priceMax && parseFloat(priceMin) > parseFloat(priceMax)) {
+           e.preventDefault();
+           alert('Der Mindestpreis kann nicht höher als der Höchstpreis sein.');
+           return false;
+       }
 
-                <!-- Active Filters Display -->
-                {% set active_filters = [] %}
-                {% if filters.type != 'all' %}{% set _ = active_filters.append(('Typ', filters.type.title())) %}{% endif %}
-                {% if filters.category %}{% set _ = active_filters.append(('Kategorie', filters.category)) %}{% endif %}
-                {% if filters.search %}{% set _ = active_filters.append(('Suche', filters.search)) %}{% endif %}
-                {% if filters.price_min %}{% set _ = active_filters.append(('Min. Preis', '$' + filters.price_min|string)) %}{% endif %}
-                {% if filters.price_max %}{% set _ = active_filters.append(('Max. Preis', '$' + filters.price_max|string)) %}{% endif %}
-
-                {% if active_filters %}
-                <div class="active-filters">
-                    <h6><i class="bi bi-filter me-2"></i>Aktive Filter:</h6>
-                    <div class="filter-tags">
-                        {% for label, value in active_filters %}
-                        <span class="filter-tag">
-                            {{ label }}: {{ value }}
-                            <span class="remove" onclick="removeFilter('{{ label }}')">&times;</span>
-                        </span>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Items Display -->
-                {% if items %}
-                <!-- Grid View -->
-                <div class="items-grid" id="grid-view">
-                    {% for item in items %}
-                    <div class="item-card" onclick="viewItem('{{ item.id }}')">
-                        <div class="item-header">
-                            <span class="item-type-badge {{ item.type }}">{{ item.type.title() }}</span>
-                            <h3 class="item-title">{{ item.name }}</h3>
-                            <div class="item-owner">
-                                <i class="bi bi-person me-1"></i>{{ format_address(item.owner) }}
-                            </div>
-                            <p class="item-description">{{ item.description }}</p>
-                            
-                            {% if item.tags %}
-                            <div class="item-tags">
-                                {% for tag in item.tags[:4] %}
-                                <span class="item-tag">{{ tag }}</span>
-                                {% endfor %}
-                                {% if item.tags|length > 4 %}
-                                <span class="item-tag">+{{ item.tags|length - 4 }}</span>
-                                {% endif %}
-                            </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="item-meta">
-                            {% if item.type == 'dataset' %}
-                            <div class="meta-item">
-                                <span class="meta-value">{{ "{:,}".format(item.samples) }}</span>
-                                <div class="meta-label">Samples</div>
-                            </div>
-                            <div class="meta-item">
-                                <span class="meta-value">{{ item.features }}</span>
-                                <div class="meta-label">Features</div>
-                            </div>
-                            {% else %}
-                            <div class="meta-item">
-                                <span class="meta-value">{{ item.accuracy }}</span>
-                                <div class="meta-label">Accuracy</div>
-                            </div>
-                            <div class="meta-item">
-                                <span class="meta-value">{{ item.framework }}</span>
-                                <div class="meta-label">Framework</div>
-                            </div>
-                            {% endif %}
-                            <div class="meta-item">
-                                <span class="meta-value">{{ item.size }}</span>
-                                <div class="meta-label">Size</div>
-                            </div>
-                            <div class="meta-item">
-                                <span class="meta-value">{{ item.category }}</span>
-                                <div class="meta-label">Category</div>
-                            </div>
-                        </div>
-                        
-                        <div class="item-footer">
-                            <div class="item-price">${{ "%.2f"|format(item.price) }}</div>
-                            {% if item.quality_score > 0 %}
-                            <div class="quality-score">
-                                <span class="score-stars">
-                                    {% for i in range((item.quality_score / 2)|int) %}★{% endfor %}
-                                </span>
-                                {{ "%.1f"|format(item.quality_score) }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                <!-- List View (Hidden by default) -->
-                <div class="items-list" id="list-view" style="display: none;">
-                    {% for item in items %}
-                    <div class="list-item" onclick="viewItem('{{ item.id }}')">
-                        <div class="item-type-badge {{ item.type }}">{{ item.type.title() }}</div>
-                        <div class="list-item-info">
-                            <h3 class="list-item-title">{{ item.name }}</h3>
-                            <div class="list-item-meta">
-                                <span><i class="bi bi-person me-1"></i>{{ format_address(item.owner) }}</span>
-                                <span><i class="bi bi-calendar me-1"></i>{{ item.formatted_date }}</span>
-                                <span><i class="bi bi-tag me-1"></i>{{ item.category }}</span>
-                                {% if item.quality_score > 0 %}
-                                <span><i class="bi bi-star me-1"></i>{{ "%.1f"|format(item.quality_score) }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div class="list-item-price">${{ "%.2f"|format(item.price) }}</div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <!-- No Results -->
-                <div class="no-results">
-                    <i class="bi bi-search"></i>
-                    <h3>Keine Ergebnisse gefunden</h3>
-                    <p>Deine Suche hat keine passenden Items ergeben. Versuche andere Filter oder Suchbegriffe.</p>
-                    <a href="/marketplace" class="clear-filters-btn">
-                        <i class="bi bi-arrow-clockwise me-2"></i>Alle Filter zurücksetzen
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize marketplace
-    console.log('Marketplace loaded with {{ stats.filtered_count }} items');
-
-    // Auto-submit form on filter changes (with debounce)
-    let filterTimeout;
-    const priceInputs = document.querySelectorAll('input[name="price_min"], input[name="price_max"]');
-
-    priceInputs.forEach(input => {
-        input.addEventListener('input', function() {
-            clearTimeout(filterTimeout);
-            filterTimeout = setTimeout(() => {
-                document.getElementById('filter-form').submit();
-            }, 1000); // Wait 1 second after user stops typing
-        });
-    });
-});
-
-// Form submission helper
-function submitForm() {
-    document.getElementById('filter-form').submit();
-}
-
-// View switching
-function switchView(viewType) {
-    const gridView = document.getElementById('grid-view');
-    const listView = document.getElementById('list-view');
-    const gridBtn = document.getElementById('grid-btn');
-    const listBtn = document.getElementById('list-btn');
-
-    if (viewType === 'grid') {
-        gridView.style.display = 'grid';
-        listView.style.display = 'none';
-        gridBtn.classList.add('active');
-        listBtn.classList.remove('active');
-        localStorage.setItem('marketplace-view', 'grid');
-    } else {
-        gridView.style.display = 'none';
-        listView.style.display = 'flex';
-        gridBtn.classList.remove('active');
-        listBtn.classList.add('active');
-        localStorage.setItem('marketplace-view', 'list');
-    }
-}
-
-// Restore saved view preference
-document.addEventListener('DOMContentLoaded', function() {
-    const savedView = localStorage.getItem('marketplace-view');
-    if (savedView === 'list') {
-        switchView('list');
-    }
-});
-
-// Navigate to item details
-function viewItem(itemId) {
-    window.location.href = `/marketplace/item/${itemId}`;
-}
-
-// Remove individual filters
-function removeFilter(filterType) {
-    const form = document.getElementById('filter-form');
-    const url = new URL(window.location);
-
-    switch(filterType) {
-        case 'Typ':
-            url.searchParams.set('type', 'all');
-            break;
-        case 'Kategorie':
-            url.searchParams.delete('category');
-            break;
-        case 'Suche':
-            url.searchParams.delete('search');
-            break;
-        case 'Min. Preis':
-            url.searchParams.delete('price_min');
-            break;
-        case 'Max. Preis':
-            url.searchParams.delete('price_max');
-            break;
-    }
-
-    window.location.href = url.toString();
-}
-
-// Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
-    // Focus search on '/' key
-    if (e.key === '/' && !e.ctrlKey && !e.metaKey) {
-        e.preventDefault();
-        document.querySelector('input[name="search"]').focus();
-    }
-
-    // Toggle view with 'v' key
-    if (e.key === 'v' || e.key === 'V') {
-        if (!e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            const currentView = localStorage.getItem('marketplace-view') || 'grid';
-            switchView(currentView === 'grid' ? 'list' : 'grid');
-        }
-    }
-
-    // Clear filters with 'c' key
-    if (e.key === 'c' || e.key === 'C') {
-        if (!e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            window.location.href = '/marketplace';
-        }
-    }
-});
-
-// Add loading states to item cards
-document.querySelectorAll('.item-card, .list-item').forEach(card => {
-    card.addEventListener('click', function() {
-        this.style.opacity = '0.7';
-        this.style.transform = 'scale(0.98)';
-    });
-});
-
-// Price range validation
-const priceMinInput = document.querySelector('input[name="price_min"]');
-const priceMaxInput = document.querySelector('input[name="price_max"]');
-
-if (priceMinInput && priceMaxInput) {
-    priceMinInput.addEventListener('change', function() {
-        const minValue = parseFloat(this.value);
-        const maxValue = parseFloat(priceMaxInput.value);
-
-        if (minValue && maxValue && minValue > maxValue) {
-            priceMaxInput.value = minValue;
-        }
-    });
-
-    priceMaxInput.addEventListener('change', function() {
-        const minValue = parseFloat(priceMinInput.value);
-        const maxValue = parseFloat(this.value);
-
-        if (minValue && maxValue && maxValue < minValue) {
-            priceMinInput.value = maxValue;
-        }
-    });
-}
-
-// Search input enhancements
-const searchInput = document.querySelector('input[name="search"]');
-if (searchInput) {
-    let searchTimeout;
-
-    searchInput.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        const query = this.value.trim();
-
-        if (query.length > 2) {
-            searchTimeout = setTimeout(() => {
-                console.log('Search suggestions for:', query);
-            }, 300);
-        }
-    });
-}
-
-// Form validation
-const form = document.getElementById('filter-form');
-if (form) {
-    form.addEventListener('submit', function(e) {
-        const priceMin = priceMinInput ? priceMinInput.value : '';
-        const priceMax = priceMaxInput ? priceMaxInput.value : '';
-
-        if (priceMin && priceMax && parseFloat(priceMin) > parseFloat(priceMax)) {
-            e.preventDefault();
-            alert('Der Mindestpreis kann nicht höher als der Höchstpreis sein.');
-            return false;
-        }
-
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
-        if (submitBtn) {
-            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Lädt...';
-            submitBtn.disabled = true;
-        }
-    });
+       // Show loading state
+       const submitBtn = this.querySelector('button[type="submit"]');
+       if (submitBtn) {
+           submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Lädt...';
+           submitBtn.disabled = true;
+       }
+   });
 }
 
 // Analytics tracking (placeholder for future enhancement)
 function trackItemView(itemId) {
-    console.log('Item viewed:', itemId);
-    // Send analytics event
+   console.log('Item viewed:', itemId);
+   // Send analytics event
 }
 
 function trackFilterUsage(filterType, value) {
-    console.log('Filter used:', filterType, value);
-    // Send analytics event
+   console.log('Filter used:', filterType, value);
+   // Send analytics event
 }
 
 // Quick filter tracking
 document.querySelectorAll('.quick-filter').forEach(filter => {
-    filter.addEventListener('click', function() {
-        const filterType = this.textContent.trim();
-        trackFilterUsage('quick-filter', filterType);
-    });
+   filter.addEventListener('click', function() {
+       const filterType = this.textContent.trim();
+       trackFilterUsage('quick-filter', filterType);
+   });
 });
 
 // Connection status monitoring
 let connectionLost = false;
 
 window.addEventListener('online', function() {
-    if (connectionLost) {
-        location.reload();
-    }
+   if (connectionLost) {
+       location.reload();
+   }
 });
 
 window.addEventListener('offline', function() {
-    connectionLost = true;
-    console.warn('Connection lost - marketplace updates paused');
+   connectionLost = true;
+   console.warn('Connection lost - marketplace updates paused');
 });
 </script>
 {% endblock %}

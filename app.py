@@ -8,14 +8,17 @@ from functools import wraps
 from datetime import datetime
 import time
 import json
-
+import os
+from werkzeug.utils import secure_filename
+from marketplace import MarketplaceBlockchain
 
 # Flask App Initialisierung
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'entwicklungsschluessel')
 
 # Blockchain Instanz erstellen
-blockchain = Blockchain()
+
+blockchain = MarketplaceBlockchain()
 
 # Benutzerdaten-Datei
 USERS_FILE = 'users.json'
@@ -187,13 +190,6 @@ def logout():
 
 
 # Placeholder-Routen für andere Seiten
-
-@app.route('/upload-dataset')
-def upload_dataset():
-    flash('Die Upload-Funktion ist in Entwicklung.', 'info')
-    return redirect(url_for('index'))
-
-
 @app.route('/training/dashboard')
 @login_required
 def training_dashboard():
@@ -224,9 +220,6 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
-
-
-# Blockchain Explorer Route - Füge dies zu deiner app.py hinzu
 
 from datetime import datetime
 import time
@@ -371,7 +364,6 @@ def blockchain_explorer():
         return redirect(url_for('index'))
 
 
-# API-Endpunkt für Block-Details (Level 2)
 @app.route('/blockchain/block/<int:block_index>')
 def block_details(block_index):
     """Detailansicht eines spezifischen Blocks"""
@@ -405,10 +397,12 @@ def block_details(block_index):
         else:
             block_details['mining_time'] = "Genesis Block"
 
-        # Proof-of-Work Verification
+        # Proof-of-Work Verification - USE STORED DIFFICULTY
         if block_index > 0:
             last_proof = blockchain.chain[block_index - 1].proof
             current_proof = block.proof
+            stored_difficulty = getattr(block, 'difficulty', 4)  # Use stored difficulty or default to 4
+
             guess = f"{last_proof}{current_proof}".encode()
             guess_hash = hashlib.sha256(guess).hexdigest()
 
@@ -417,7 +411,9 @@ def block_details(block_index):
                 'current_proof': current_proof,
                 'combined_hash': guess_hash,
                 'leading_zeros': len(guess_hash) - len(guess_hash.lstrip('0')),
-                'is_valid': guess_hash.startswith('0000')  # Standard difficulty 4
+                'difficulty_used': stored_difficulty,  # Show the actual difficulty used
+                'target_zeros': '0' * stored_difficulty,  # Show the target pattern
+                'is_valid': guess_hash.startswith('0' * stored_difficulty)  # Validate with correct difficulty
             }
         else:
             block_details['pow_verification'] = None
@@ -506,173 +502,18 @@ def blockchain_stats_api():
 #######################
 # MARKETPLACE
 #######################
-# Mock-Daten für Demo-Zwecke (erweitert die Blockchain-Daten)
 def initialize_demo_marketplace_data():
-    """Fügt Demo-Daten zur Blockchain hinzu, falls sie leer ist"""
+    """Prüft ob die Blockchain bereit ist, erstellt aber keine Demo-Daten mehr"""
 
-    # Prüfe ob bereits Marketplace-Daten existieren
-    marketplace_transactions = []
-    for block in blockchain.chain:
-        for tx in block.transactions:
-            if tx.get('type') in ['data_upload', 'model_upload']:
-                marketplace_transactions.append(tx)
+    # Einfache Prüfung ob Blockchain initialisiert ist
+    if len(blockchain.chain) == 0:
+        print("Blockchain nicht initialisiert - erstelle Genesis-Block")
+        blockchain.create_genesis_block()
+    else:
+        print(f"Blockchain bereit mit {len(blockchain.chain)} Block(s)")
 
-    # Wenn keine Marketplace-Daten vorhanden, füge Demo-Daten hinzu
-    if len(marketplace_transactions) < 3:
-        print("Füge Demo-Marketplace-Daten hinzu...")
-
-        # Demo-Datensätze
-        demo_datasets = [
-            {
-                'owner': 'alice_researcher',
-                'metadata': {
-                    'name': 'Customer Behavior Dataset',
-                    'description': 'Comprehensive analysis of customer purchasing patterns with demographics',
-                    'category': 'Business Analytics',
-                    'format': 'CSV',
-                    'size': '2.5MB',
-                    'samples': 50000,
-                    'features': 15,
-                    'tags': ['customer', 'behavior', 'sales', 'demographics'],
-                    'quality_score': 9.2,
-                    'last_updated': '2025-05-20'
-                },
-                'price': 25.99
-            },
-            {
-                'owner': 'data_science_lab',
-                'metadata': {
-                    'name': 'Medical Imaging Dataset',
-                    'description': 'Annotated X-ray images for pneumonia detection research',
-                    'category': 'Healthcare',
-                    'format': 'Images + JSON',
-                    'size': '12.8GB',
-                    'samples': 5863,
-                    'features': 'Image + Labels',
-                    'tags': ['medical', 'xray', 'pneumonia', 'healthcare', 'imaging'],
-                    'quality_score': 9.8,
-                    'last_updated': '2025-05-18'
-                },
-                'price': 199.99
-            },
-            {
-                'owner': 'finance_corp',
-                'metadata': {
-                    'name': 'Stock Market Prediction Data',
-                    'description': 'Historical stock prices with technical indicators and news sentiment',
-                    'category': 'Finance',
-                    'format': 'CSV + Text',
-                    'size': '890MB',
-                    'samples': 1200000,
-                    'features': 28,
-                    'tags': ['stocks', 'finance', 'prediction', 'sentiment', 'trading'],
-                    'quality_score': 8.7,
-                    'last_updated': '2025-05-22'
-                },
-                'price': 89.50
-            },
-            {
-                'owner': 'iot_solutions',
-                'metadata': {
-                    'name': 'Smart Home Sensor Data',
-                    'description': 'IoT sensor readings from smart homes for energy optimization',
-                    'category': 'IoT',
-                    'format': 'Time Series JSON',
-                    'size': '1.2GB',
-                    'samples': 2800000,
-                    'features': 12,
-                    'tags': ['iot', 'smart-home', 'energy', 'sensors', 'time-series'],
-                    'quality_score': 8.9,
-                    'last_updated': '2025-05-21'
-                },
-                'price': 45.00
-            }
-        ]
-
-        # Demo-Modelle
-        demo_models = [
-            {
-                'owner': 'ml_expert',
-                'metadata': {
-                    'name': 'Advanced Image Classifier',
-                    'description': 'Pre-trained CNN for general image classification with 95% accuracy',
-                    'category': 'Computer Vision',
-                    'framework': 'TensorFlow',
-                    'model_type': 'Convolutional Neural Network',
-                    'accuracy': '95.2%',
-                    'parameters': '23.5M',
-                    'input_size': '224x224x3',
-                    'tags': ['cnn', 'image-classification', 'tensorflow', 'computer-vision'],
-                    'training_dataset': 'ImageNet + Custom',
-                    'last_updated': '2025-05-19'
-                },
-                'price': 299.99
-            },
-            {
-                'owner': 'nlp_research',
-                'metadata': {
-                    'name': 'Sentiment Analysis Model',
-                    'description': 'BERT-based model fine-tuned for social media sentiment analysis',
-                    'category': 'Natural Language Processing',
-                    'framework': 'PyTorch',
-                    'model_type': 'Transformer (BERT)',
-                    'accuracy': '91.8%',
-                    'parameters': '110M',
-                    'input_size': 'Variable text',
-                    'tags': ['bert', 'sentiment', 'nlp', 'social-media', 'pytorch'],
-                    'training_dataset': 'Twitter Sentiment + Reviews',
-                    'last_updated': '2025-05-17'
-                },
-                'price': 149.99
-            },
-            {
-                'owner': 'auto_ml_systems',
-                'metadata': {
-                    'name': 'Fraud Detection Model',
-                    'description': 'XGBoost model for real-time credit card fraud detection',
-                    'category': 'Finance',
-                    'framework': 'XGBoost',
-                    'model_type': 'Gradient Boosting',
-                    'accuracy': '98.7%',
-                    'parameters': '50K',
-                    'input_size': '30 features',
-                    'tags': ['fraud-detection', 'xgboost', 'finance', 'real-time'],
-                    'training_dataset': 'Credit Card Transactions',
-                    'last_updated': '2025-05-20'
-                },
-                'price': 499.99
-            }
-        ]
-
-        # Füge Datensätze zur Blockchain hinzu
-        for dataset in demo_datasets:
-            try:
-                blockchain.data_upload_transaction(
-                    dataset['owner'],
-                    dataset['metadata'],
-                    dataset['price']
-                )
-            except Exception as e:
-                print(f"Fehler beim Hinzufügen von Dataset: {e}")
-
-        # Füge Modelle zur Blockchain hinzu
-        for model in demo_models:
-            try:
-                blockchain.model_upload_transaction(
-                    model['owner'],
-                    model['metadata'],
-                    model['price']
-                )
-            except Exception as e:
-                print(f"Fehler beim Hinzufügen von Model: {e}")
-
-        # Mine einen Block mit den neuen Transaktionen
-        if blockchain.current_transactions:
-            try:
-                new_block, mining_time = blockchain.mine_block(difficulty=2)
-                print(f"Demo-Daten in Block {new_block.index} gemined (Zeit: {mining_time:.2f}s)")
-            except Exception as e:
-                print(f"Fehler beim Minen des Demo-Blocks: {e}")
+    # Keine Demo-Daten mehr erstellen
+    print("Demo-Daten-Erstellung übersprungen - nur echte User-Uploads werden verarbeitet")
 
 
 # Marketplace Haupt-Route
@@ -1087,6 +928,407 @@ def marketplace_stats_api():
         }
 
         return jsonify(stats)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+# Upload-Konfiguration
+UPLOAD_FOLDER = 'uploads'
+MAX_FILE_SIZE = 100 * 1024 * 1024  # 100MB
+ALLOWED_EXTENSIONS = {
+    'dataset': {'csv', 'json', 'xlsx', 'xls', 'zip', 'jpg', 'jpeg', 'png', 'parquet'},
+    'model': {'pkl', 'h5', 'onnx', 'pt', 'pth', 'zip', 'joblib'}
+}
+
+# Stelle sicher, dass Upload-Ordner existiert
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def allowed_file(filename, upload_type):
+    """Prüft ob Dateiendung erlaubt ist"""
+    if '.' not in filename:
+        return False
+
+    extension = filename.rsplit('.', 1)[1].lower()
+    return extension in ALLOWED_EXTENSIONS.get(upload_type, set())
+
+
+def get_file_size_mb(file_path):
+    """Gibt Dateigröße in MB zurück"""
+    size_bytes = os.path.getsize(file_path)
+    return round(size_bytes / (1024 * 1024), 2)
+
+
+@app.route('/upload-dataset', methods=['GET', 'POST'])
+@login_required
+def upload_dataset():
+    """Upload-Seite für Datasets und Modelle"""
+
+    if request.method == 'GET':
+        return render_template('upload_dataset.html')
+
+    try:
+        # Form-Daten extrahieren
+        upload_type = request.form.get('upload_type', 'dataset')
+        name = request.form.get('name', '').strip()
+        category = request.form.get('category', '').strip()
+        description = request.form.get('description', '').strip()
+        price = float(request.form.get('price', 0))
+        tags_str = request.form.get('tags', '')
+
+        # Tags verarbeiten
+        tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()] if tags_str else []
+
+        # Validierung
+        if not name:
+            flash('Bitte gib einen Namen für deinen Upload an.', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        if not category:
+            flash('Bitte wähle eine Kategorie aus.', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        if not description:
+            flash('Bitte füge eine Beschreibung hinzu.', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        if price < 0:
+            flash('Der Preis kann nicht negativ sein.', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        # Datei-Upload prüfen
+        if 'file' not in request.files:
+            flash('Keine Datei ausgewählt.', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        file = request.files['file']
+        if file.filename == '':
+            flash('Keine Datei ausgewählt.', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        # Datei-Validierung
+        if not allowed_file(file.filename, upload_type):
+            allowed_exts = ', '.join(ALLOWED_EXTENSIONS[upload_type])
+            flash(f'Dateityp nicht erlaubt. Erlaubte Formate: {allowed_exts}', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        # Sichere Dateinamen
+        filename = secure_filename(file.filename)
+        timestamp = str(int(time.time()))
+        unique_filename = f"{timestamp}_{filename}"
+        file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
+
+        # Datei speichern
+        file.save(file_path)
+
+        # Dateigröße prüfen
+        file_size_mb = get_file_size_mb(file_path)
+        if file_size_mb > 100:  # 100MB Limit
+            os.remove(file_path)
+            flash('Datei zu groß. Maximum: 100MB', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+        # Metadaten vorbereiten
+        metadata = {
+            'name': name,
+            'description': description,
+            'category': category,
+            'tags': tags,
+            'format': request.form.get('format', ''),
+            'size': f"{file_size_mb} MB",
+            'original_filename': filename,
+            'upload_date': datetime.now().strftime('%Y-%m-%d'),
+            'last_updated': datetime.now().strftime('%Y-%m-%d')
+        }
+
+        # Typ-spezifische Metadaten
+        if upload_type == 'dataset':
+            samples = request.form.get('samples', type=int)
+            features = request.form.get('features', type=int)
+
+            if samples:
+                metadata['samples'] = samples
+            if features:
+                metadata['features'] = features
+
+        elif upload_type == 'model':
+            framework = request.form.get('framework', '').strip()
+            model_type = request.form.get('model_type', '').strip()
+            accuracy = request.form.get('accuracy', '').strip()
+            parameters = request.form.get('parameters', '').strip()
+            training_dataset = request.form.get('training_dataset', '').strip()
+
+            if framework:
+                metadata['framework'] = framework
+            if model_type:
+                metadata['model_type'] = model_type
+            if accuracy:
+                metadata['accuracy'] = accuracy
+            if parameters:
+                metadata['parameters'] = parameters
+            if training_dataset:
+                metadata['training_dataset'] = training_dataset
+
+        # Benutzer-Adresse
+        owner_address = session.get('blockchain_address')
+        if not owner_address:
+            os.remove(file_path)
+            flash('Keine gültige Blockchain-Adresse gefunden. Bitte logge dich erneut ein.', 'danger')
+            return redirect(url_for('login'))
+
+        # Zu Blockchain hinzufügen
+        try:
+            if upload_type == 'dataset':
+                # Füge Dataset-Transaktion zu pending transactions hinzu
+                data_id = blockchain.data_upload_transaction(
+                    owner_address, metadata, price
+                )
+                upload_id = data_id
+
+            else:  # model
+                # Füge Model-Transaktion zu pending transactions hinzu
+                model_id = blockchain.model_upload_transaction(
+                    owner_address, metadata, price
+                )
+                upload_id = model_id
+
+            # Lokale Datei nach Upload löschen
+            os.remove(file_path)
+
+            # Erfolgsmeldung mit Hinweis auf Mining
+            item_type = "Dataset" if upload_type == 'dataset' else "Modell"
+            pending_count = len(blockchain.current_transactions)
+
+            flash(f'{item_type} "{name}" wurde erfolgreich zur Blockchain hinzugefügt!', 'success')
+            flash(f'Die Transaktion wartet jetzt auf Mining. Es sind {pending_count} Transaktionen ausstehend.', 'info')
+
+            # Weiterleitung zum Marketplace (Item ist noch nicht verfügbar bis gemined)
+            return redirect(url_for('marketplace'))
+
+        except Exception as blockchain_error:
+            # Bei Blockchain-Fehler: Datei löschen und Fehler melden
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
+            flash(f'Fehler beim Hinzufügen zur Blockchain: {str(blockchain_error)}', 'danger')
+            return redirect(url_for('upload_dataset'))
+
+    except ValueError as e:
+        flash(f'Ungültige Eingabe: {str(e)}', 'danger')
+        return redirect(url_for('upload_dataset'))
+
+    except Exception as e:
+        flash(f'Upload-Fehler: {str(e)}', 'danger')
+        return redirect(url_for('upload_dataset'))
+
+
+def save_encryption_key(item_id, encryption_key, item_name):
+    """Speichert Verschlüsselungsschlüssel sicher"""
+    try:
+        # Lade bestehende Schlüssel
+        keys_file = 'data_keys.json'
+        if os.path.exists(keys_file):
+            with open(keys_file, 'r') as f:
+                keys_data = json.load(f)
+        else:
+            keys_data = {"datasets": []}
+
+        # Füge neuen Schlüssel hinzu
+        key_entry = {
+            "name": item_name,
+            "data_id": item_id,
+            "encryption_key": encryption_key,
+            "upload_date": datetime.now().strftime('%Y-%m-%d')
+        }
+
+        keys_data["datasets"].append(key_entry)
+
+        # Speichere aktualisierte Schlüssel
+        with open(keys_file, 'w') as f:
+            json.dump(keys_data, f, indent=2)
+
+        print(f"Verschlüsselungsschlüssel für {item_name} gespeichert")
+
+    except Exception as e:
+        print(f"Warnung: Konnte Verschlüsselungsschlüssel nicht speichern: {e}")
+
+
+# API-Route für Upload-Status (optional für Ajax-Updates)
+@app.route('/api/upload/status/<upload_id>')
+@login_required
+def upload_status(upload_id):
+    """API-Endpunkt für Upload-Status-Updates"""
+    try:
+        # Hier könntest du den Status eines Uploads abfragen
+        # Momentan ein Platzhalter für zukünftige Implementierung
+
+        return jsonify({
+            'status': 'completed',
+            'message': 'Upload erfolgreich verarbeitet',
+            'item_id': upload_id
+        })
+
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
+
+
+# Mine automatisch einen Block nach Upload (optional)
+@app.route('/api/mine-block', methods=['POST'])
+@login_required
+def mine_block_api():
+    """Mined einen neuen Block mit ausstehenden Transaktionen"""
+    try:
+        if len(blockchain.current_transactions) == 0:
+            return jsonify({'error': 'Keine ausstehenden Transaktionen'}), 400
+
+        # Mine Block mit niedriger Schwierigkeit für Demo
+        new_block, mining_time = blockchain.mine_block(difficulty=2)
+
+        return jsonify({
+            'success': True,
+            'block_index': new_block.index,
+            'mining_time': f"{mining_time:.2f} seconds",
+            'transactions_count': len(new_block.transactions)
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/debug/blockchain')
+@login_required
+def debug_blockchain():
+    """Debug-Route um Blockchain-Inhalt zu prüfen"""
+    debug_info = {
+        'total_blocks': len(blockchain.chain),
+        'transactions_per_block': [],
+        'all_transaction_ids': []
+    }
+
+    for i, block in enumerate(blockchain.chain):
+        block_info = {
+            'block_index': i,
+            'transaction_count': len(block.transactions),
+            'transactions': []
+        }
+
+        for tx in block.transactions:
+            tx_info = {
+                'id': tx.get('transaction_id', 'NO_ID'),
+                'type': tx.get('type', 'NO_TYPE'),
+                'owner': tx.get('owner', 'NO_OWNER')
+            }
+            block_info['transactions'].append(tx_info)
+            debug_info['all_transaction_ids'].append(tx.get('transaction_id'))
+
+        debug_info['transactions_per_block'].append(block_info)
+
+    return jsonify(debug_info)
+
+
+@app.route('/mine')
+@login_required
+def mine_page():
+    """Mining-Seite mit Live-Animation"""
+
+    # Prüfe ob Transaktionen zum Minen vorhanden sind
+    pending_count = len(blockchain.current_transactions)
+
+    if pending_count == 0:
+        flash('Keine ausstehenden Transaktionen zum Minen verfügbar.', 'info')
+        return redirect(url_for('blockchain_explorer'))
+
+    # Bereite Mining-Informationen vor
+    mining_info = {
+        'pending_transactions': pending_count,
+        'last_block_hash': blockchain.last_block.hash,
+        'last_proof': blockchain.last_block.proof,
+        'difficulty': 4,  # Standard Schwierigkeit
+        'target_zeros': '0000',  # Für Difficulty 4
+        'next_block_index': len(blockchain.chain)
+    }
+
+    # Beispiel der aktuellen Transaktionen für Anzeige
+    pending_transactions = []
+    for i, tx in enumerate(blockchain.current_transactions[:5]):  # Zeige max 5
+        tx_display = {
+            'index': i + 1,
+            'type': tx.get('type', 'transfer'),
+            'from': tx.get('owner') or tx.get('sender', 'Unknown'),
+            'amount': tx.get('price') or tx.get('amount', 0),
+            'name': tx.get('metadata', {}).get('name') if tx.get('metadata') else tx.get('transaction_id', '')[
+                                                                                  :16] + '...'
+        }
+        pending_transactions.append(tx_display)
+
+    return render_template('mining.html',
+                           mining_info=mining_info,
+                           pending_transactions=pending_transactions)
+
+
+@app.route('/api/mine/simulate', methods=['POST'])
+@login_required
+def simulate_mining():
+    """API-Endpunkt für Live-Mining-Simulation"""
+
+    try:
+        data = request.json
+        last_proof = data.get('last_proof', blockchain.last_block.proof)
+        current_attempt = data.get('current_attempt', 0)
+        difficulty = data.get('difficulty', 4)
+
+        # Berechne Hash für aktuellen Versuch - verwende echte Blockchain-Logik
+        guess = f"{last_proof}{current_attempt}".encode()
+        guess_hash = hashlib.sha256(guess).hexdigest()
+
+        # Prüfe ob gültig mit der echten valid_proof Methode
+        is_valid = blockchain.valid_proof(last_proof, current_attempt, difficulty)
+
+        # Zähle führende Nullen
+        leading_zeros = len(guess_hash) - len(guess_hash.lstrip('0'))
+
+        return jsonify({
+            'attempt': current_attempt,
+            'hash': guess_hash,
+            'is_valid': is_valid,
+            'leading_zeros': leading_zeros,
+            'target_zeros': difficulty,
+            'difficulty': difficulty,
+            'attempts_per_second': 1000  # Simulierte Geschwindigkeit
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/mine/start', methods=['POST'])
+@login_required
+def start_mining():
+    """API-Endpunkt um echtes Mining zu starten"""
+
+    try:
+        if len(blockchain.current_transactions) == 0:
+            return jsonify({'error': 'Keine ausstehenden Transaktionen'}), 400
+
+        # Mining-Parameter aus Request
+        difficulty = int(request.json.get('difficulty', 4))
+
+        # Verwende die echte mine_block Methode
+        new_block, mining_time = blockchain.mine_block(difficulty)
+
+        return jsonify({
+            'success': True,
+            'block_index': new_block.index,
+            'proof': new_block.proof,
+            'hash': new_block.hash,
+            'mining_time': mining_time,
+            'transactions_mined': len(new_block.transactions),
+            'difficulty': difficulty
+        })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500

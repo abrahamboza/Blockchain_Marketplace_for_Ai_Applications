@@ -394,10 +394,11 @@ class MarketplaceBlockchain(Blockchain):
         finally:
             session.close()
 
-    def make_block(self, proof: int) -> Block:
+    def make_block(self, proof: int, difficulty: int = 4) -> Block:
         """
         Creates a new Block in the Blockchain
-        :param proof:
+        :param proof: The proof of work
+        :param difficulty: The difficulty used for mining
         :return: new Block
         """
         previous_block = self.last_block
@@ -409,6 +410,7 @@ class MarketplaceBlockchain(Blockchain):
             timestamp=time.time(),
             transactions=self.current_transactions,
             proof=proof,
+            difficulty=difficulty,  # Include difficulty parameter
         )
 
         # Reset current transactions
