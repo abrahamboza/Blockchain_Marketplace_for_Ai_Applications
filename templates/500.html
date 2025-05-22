@@ -1,0 +1,299 @@
+{% extends "base_layout.html" %}
+
+{% block title %}500 - Serverfehler | Data Marketplace Mockup{% endblock %}
+
+{% block additional_styles %}
+.error-section {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 300px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-container {
+    text-align: center;
+    max-width: 700px;
+    padding: 3rem 2rem;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 800;
+    color: var(--danger-color);
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.error-description {
+    font-size: 1.1rem;
+    color: var(--gray-600);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.error-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.error-actions .btn {
+    min-width: 200px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+.troubleshooting {
+    background-color: white;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.troubleshooting h5 {
+    color: var(--danger-color);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.troubleshooting h5 i {
+    margin-right: 0.5rem;
+}
+
+.troubleshooting-list {
+    list-style: none;
+    padding: 0;
+}
+
+.troubleshooting-list li {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: flex-start;
+}
+
+.troubleshooting-list li:last-child {
+    border-bottom: none;
+}
+
+.troubleshooting-list li i {
+    margin-right: 0.75rem;
+    margin-top: 0.25rem;
+    color: var(--primary-color);
+}
+
+.demo-note {
+    background-color: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.demo-note h6 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.demo-note h6 i {
+    margin-right: 0.5rem;
+}
+
+.demo-note p {
+    margin-bottom: 0;
+    color: var(--gray-700);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 6rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-container {
+        padding: 2rem 1rem;
+    }
+    
+    .troubleshooting {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="container">
+        <div class="error-container">
+            <div class="error-code">500</div>
+            <h1 class="error-title">Interner Serverfehler</h1>
+            <p class="error-description">
+                Es tut uns leid! Es ist ein unerwarteter Fehler auf dem Server aufgetreten. 
+                Unser Team wurde automatisch benachrichtigt und arbeitet daran, das Problem zu beheben.
+            </p>
+            
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">
+                    <i class="bi bi-house me-2"></i>Zur Startseite
+                </a>
+                <button onclick="location.reload()" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Seite neu laden
+                </button>
+                <button onclick="history.back()" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Zurück zur vorherigen Seite
+                </button>
+            </div>
+            
+            <div class="troubleshooting">
+                <h5><i class="bi bi-tools"></i>Fehlerbehebung</h5>
+                <ul class="troubleshooting-list">
+                    <li>
+                        <i class="bi bi-arrow-clockwise"></i>
+                        <div>
+                            <strong>Seite neu laden:</strong> Manchmal hilft ein einfacher Reload, um temporäre Probleme zu beheben.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-clock-history"></i>
+                        <div>
+                            <strong>Später versuchen:</strong> Falls der Server überlastet ist, versuche es in ein paar Minuten erneut.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-arrow-left"></i>
+                        <div>
+                            <strong>Andere Seite besuchen:</strong> Navigiere zu einer anderen Seite und kehre später zurück.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-browser-chrome"></i>
+                        <div>
+                            <strong>Browser-Cache leeren:</strong> Lösche den Browser-Cache und lade die Seite neu.
+                        </div>
+                    </li>
+                    <li>
+                        <i class="bi bi-person-gear"></i>
+                        <div>
+                            <strong>Support kontaktieren:</strong> Falls das Problem weiterhin besteht, wende dich an den Administrator.
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="demo-note">
+                <h6><i class="bi bi-info-circle"></i>Demo-System Hinweis</h6>
+                <p>
+                    Dies ist ein Demonstrations-Mockup für Bildungszwecke. Serverfehler können auftreten, 
+                    da es sich um eine experimentelle Implementierung handelt. In einer Produktionsumgebung 
+                    würden robustere Fehlerbehandlungs- und Logging-Mechanismen implementiert werden.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click animation to buttons
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 100);
+        });
+    });
+    
+    // Auto-retry functionality
+    let retryCount = 0;
+    const maxRetries = 3;
+    
+    // Show retry countdown if this is a reload attempt
+    if (sessionStorage.getItem('server_error_retry')) {
+        retryCount = parseInt(sessionStorage.getItem('server_error_retry')) || 0;
+        
+        if (retryCount < maxRetries) {
+            setTimeout(() => {
+                showRetryCountdown();
+            }, 5000);
+        }
+    }
+    
+    function showRetryCountdown() {
+        const countdownElement = document.createElement('div');
+        countdownElement.className = 'alert alert-warning mt-3';
+        countdownElement.innerHTML = `
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Automatischer Wiederholungsversuch in <span id="countdown">10</span> Sekunden...
+            <button class="btn btn-sm btn-outline-warning ms-2" onclick="cancelRetry()">Abbrechen</button>
+        `;
+        
+        document.querySelector('.troubleshooting').appendChild(countdownElement);
+        
+        let seconds = 10;
+        const countdownTimer = setInterval(() => {
+            seconds--;
+            const countdownSpan = document.getElementById('countdown');
+            if (countdownSpan) {
+                countdownSpan.textContent = seconds;
+            }
+            
+            if (seconds <= 0) {
+                clearInterval(countdownTimer);
+                sessionStorage.setItem('server_error_retry', (retryCount + 1).toString());
+                location.reload();
+            }
+        }, 1000);
+        
+        // Make cancel function globally available
+        window.cancelRetry = function() {
+            clearInterval(countdownTimer);
+            countdownElement.remove();
+            sessionStorage.removeItem('server_error_retry');
+        };
+    }
+    
+    // Clear retry counter if user navigates away successfully
+    window.addEventListener('beforeunload', function() {
+        if (!location.href.includes('500')) {
+            sessionStorage.removeItem('server_error_retry');
+        }
+    });
+    
+    // Error reporting simulation (in real app, this would send to logging service)
+    function simulateErrorReport() {
+        console.log('Error reported to monitoring system:', {
+            timestamp: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            url: window.location.href,
+            referrer: document.referrer
+        });
+    }
+    
+    // Report error after 2 seconds
+    setTimeout(simulateErrorReport, 2000);
+});
+</script>
+{% endblock %}

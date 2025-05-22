@@ -1,0 +1,202 @@
+{% extends "base_layout.html" %}
+
+{% block title %}404 - Seite nicht gefunden | Data Marketplace Mockup{% endblock %}
+
+{% block additional_styles %}
+.error-section {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 300px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-container {
+    text-align: center;
+    max-width: 600px;
+    padding: 3rem 2rem;
+}
+
+.error-code {
+    font-size: 8rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+.error-description {
+    font-size: 1.1rem;
+    color: var(--gray-600);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.error-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.error-actions .btn {
+    min-width: 200px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+.suggestions {
+    background-color: white;
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    text-align: left;
+}
+
+.suggestions h5 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.suggestions h5 i {
+    margin-right: 0.5rem;
+}
+
+.suggestion-list {
+    list-style: none;
+    padding: 0;
+}
+
+.suggestion-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.suggestion-list li:last-child {
+    border-bottom: none;
+}
+
+.suggestion-list a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.suggestion-list a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .error-code {
+        font-size: 6rem;
+    }
+    
+    .error-title {
+        font-size: 1.5rem;
+    }
+    
+    .error-container {
+        padding: 2rem 1rem;
+    }
+    
+    .suggestions {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<section class="error-section">
+    <div class="container">
+        <div class="error-container">
+            <div class="error-code">404</div>
+            <h1 class="error-title">Seite nicht gefunden</h1>
+            <p class="error-description">
+                Ups! Die angeforderte Seite konnte nicht gefunden werden. 
+                Möglicherweise wurde sie verschoben, gelöscht oder du hast eine falsche URL eingegeben.
+            </p>
+            
+            <div class="error-actions">
+                <a href="/" class="btn btn-primary">
+                    <i class="bi bi-house me-2"></i>Zur Startseite
+                </a>
+                <button onclick="history.back()" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Zurück zur vorherigen Seite
+                </button>
+            </div>
+            
+            <div class="suggestions">
+                <h5><i class="bi bi-lightbulb"></i>Vielleicht suchst du nach:</h5>
+                <ul class="suggestion-list">
+                    <li><a href="/"><i class="bi bi-house me-2"></i>Startseite - Übersicht über das Projekt</a></li>
+                    <li><a href="/marketplace"><i class="bi bi-shop me-2"></i>Marketplace - Datensätze und Modelle durchsuchen</a></li>
+                    <li><a href="/blockchain"><i class="bi bi-link-45deg me-2"></i>Blockchain Explorer - Transaktionen einsehen</a></li>
+                    {% if is_logged_in() %}
+                    <li><a href="/upload-dataset"><i class="bi bi-cloud-upload me-2"></i>Daten hochladen - Eigene Datensätze teilen</a></li>
+                    <li><a href="/training/dashboard"><i class="bi bi-cpu me-2"></i>ML Training - Modelle trainieren</a></li>
+                    <li><a href="/admin"><i class="bi bi-gear me-2"></i>Admin-Bereich - Systemverwaltung</a></li>
+                    {% else %}
+                    <li><a href="/login"><i class="bi bi-person me-2"></i>Anmelden - Zugang zu erweiterten Funktionen</a></li>
+                    <li><a href="/register"><i class="bi bi-person-plus me-2"></i>Registrieren - Neues Konto erstellen</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add some interactive elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Add click sound to buttons (optional)
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 100);
+        });
+    });
+    
+    // Random helpful tip
+    const tips = [
+        "Tipp: Nutze die Navigation oben, um schnell zu den Hauptbereichen zu gelangen.",
+        "Tipp: Der Blockchain Explorer zeigt alle Transaktionen in Echtzeit an.",
+        "Tipp: Registriere dich, um Zugang zu erweiterten Funktionen zu erhalten.",
+        "Tipp: Das ist ein Demo-System - alle Daten sind simuliert."
+    ];
+    
+    // Show random tip after 3 seconds
+    setTimeout(() => {
+        const randomTip = tips[Math.floor(Math.random() * tips.length)];
+        
+        const tipElement = document.createElement('div');
+        tipElement.className = 'alert alert-info mt-3';
+        tipElement.innerHTML = `<i class="bi bi-info-circle me-2"></i>${randomTip}`;
+        
+        document.querySelector('.suggestions').appendChild(tipElement);
+        
+        // Fade in effect
+        tipElement.style.opacity = '0';
+        tipElement.style.transition = 'opacity 0.5s';
+        setTimeout(() => {
+            tipElement.style.opacity = '1';
+        }, 100);
+    }, 3000);
+});
+</script>
+{% endblock %}

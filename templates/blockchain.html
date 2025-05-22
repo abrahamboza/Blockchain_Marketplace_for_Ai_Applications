@@ -1,0 +1,687 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Blockchain Explorer | Data Marketplace Mockup{% endblock %}
+
+{% block additional_styles %}
+.blockchain-explorer {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 200px);
+}
+
+.explorer-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 3rem 0 2rem;
+    margin-bottom: 2rem;
+}
+
+.explorer-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.explorer-header .lead {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.stat-icon.blocks {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.stat-icon.transactions {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: var(--secondary-color);
+}
+
+.stat-icon.pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.stat-icon.mining {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--gray-600);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+.stat-detail {
+    color: var(--gray-500);
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.section-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.section-header {
+    background-color: var(--gray-50);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.refresh-btn {
+    background: none;
+    border: 1px solid var(--gray-300);
+    color: var(--gray-600);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.refresh-btn:hover {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.refresh-btn.loading {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.block-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.block-card {
+    background: var(--gray-50);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+}
+
+.block-card:hover {
+    border-color: var(--primary-color);
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.block-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.block-index {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.block-time {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+.block-hash {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    word-break: break-all;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+}
+
+.block-stats {
+    display: flex;
+    justify-content: between;
+    font-size: 0.85rem;
+}
+
+.block-stat {
+    text-align: center;
+}
+
+.block-stat-value {
+    font-weight: 600;
+    color: var(--text-dark);
+    display: block;
+}
+
+.block-stat-label {
+    color: var(--gray-500);
+    font-size: 0.75rem;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transaction-table th {
+    background-color: var(--gray-50);
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--gray-700);
+    border-bottom: 2px solid var(--gray-200);
+    font-size: 0.9rem;
+}
+
+.transaction-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 0.9rem;
+}
+
+.transaction-table tr:hover {
+    background-color: var(--gray-50);
+}
+
+.tx-id {
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.tx-type {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.tx-type.data-upload {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.tx-type.model-upload {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: var(--secondary-color);
+}
+
+.tx-type.data-purchase, .tx-type.model-purchase {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.tx-type.transfer {
+    background-color: rgba(107, 114, 128, 0.1);
+    color: var(--gray-600);
+}
+
+.tx-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.tx-status.confirmed {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.tx-status.pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.tx-amount {
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.no-data {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+}
+
+.no-data i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--gray-400);
+}
+
+.live-indicator {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 1rem;
+    font-size: 0.8rem;
+    color: var(--success-color);
+}
+
+.live-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--success-color);
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+.mining-status {
+    background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.mining-status h6 {
+    color: var(--success-color);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.mining-status h6 i {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .explorer-header h1 {
+        font-size: 2rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .block-grid {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    
+    .transaction-table {
+        font-size: 0.8rem;
+    }
+    
+    .transaction-table th,
+    .transaction-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="blockchain-explorer">
+    <!-- Explorer Header -->
+    <section class="explorer-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1><i class="bi bi-link-45deg me-3"></i>Blockchain Explorer</h1>
+                    <p class="lead mb-0">Erkunde die dezentrale Ledger-Struktur und verfolge alle Transaktionen in Echtzeit</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="live-indicator">
+                        <span class="live-dot"></span>
+                        Live Updates
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Mining Status -->
+        <div class="mining-status">
+            <h6><i class="bi bi-cpu"></i>Network Status</h6>
+            <p class="mb-0">
+                <strong>Difficulty:</strong> {{ stats.network_difficulty }} leading zeros | 
+                <strong>Average Block Time:</strong> {{ stats.average_block_time }} | 
+                <strong>Last Block:</strong> {{ format_timestamp(stats.last_mined) }}
+            </p>
+        </div>
+
+        <!-- Statistics Grid -->
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blocks">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <div class="stat-value" id="total-blocks">{{ stats.total_blocks }}</div>
+                <div class="stat-label">Total Blocks</div>
+                <div class="stat-detail">Latest: #{{ stats.latest_block_index }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon transactions">
+                    <i class="bi bi-arrow-left-right"></i>
+                </div>
+                <div class="stat-value" id="total-transactions">{{ stats.total_transactions }}</div>
+                <div class="stat-label">Total Transactions</div>
+                <div class="stat-detail">Across all blocks</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon pending">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="stat-value" id="pending-transactions">{{ stats.pending_transactions }}</div>
+                <div class="stat-label">Pending Transactions</div>
+                <div class="stat-detail">Waiting for mining</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon mining">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="stat-value">{{ stats.latest_block_hash[:8] }}...</div>
+                <div class="stat-label">Latest Block Hash</div>
+                <div class="stat-detail" id="latest-hash">{{ stats.latest_block_hash[8:16] }}...</div>
+            </div>
+        </div>
+
+        <!-- Recent Blocks Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="bi bi-layers"></i>
+                    Recent Blocks
+                </h3>
+                <button class="refresh-btn" onclick="refreshBlocks()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            
+            {% if recent_blocks %}
+            <div class="block-grid">
+                {% for block in recent_blocks %}
+                <div class="block-card" onclick="viewBlockDetails({{ block.index }})">
+                    <div class="block-header">
+                        <div class="block-index">Block #{{ block.index }}</div>
+                        <div class="block-time">{{ format_timestamp(block.timestamp) }}</div>
+                    </div>
+                    
+                    <div class="block-hash">
+                        <strong>Hash:</strong> {{ block.hash[:32] }}...
+                    </div>
+                    
+                    <div class="block-stats">
+                        <div class="block-stat">
+                            <span class="block-stat-value">{{ block.transaction_count }}</span>
+                            <span class="block-stat-label">Transactions</span>
+                        </div>
+                        <div class="block-stat">
+                            <span class="block-stat-value">{{ "%.1f"|format(block.size_kb) }}KB</span>
+                            <span class="block-stat-label">Size</span>
+                        </div>
+                        <div class="block-stat">
+                            <span class="block-stat-value">{{ block.proof }}</span>
+                            <span class="block-stat-label">Proof</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-data">
+                <i class="bi bi-inbox"></i>
+                <h5>No blocks found</h5>
+                <p>The blockchain appears to be empty. Start mining to create the first block!</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Transactions Section -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Recent Transactions
+                </h3>
+                <button class="refresh-btn" onclick="refreshTransactions()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+            
+            {% if recent_transactions %}
+            <div class="table-responsive">
+                <table class="transaction-table">
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Type</th>
+                            <th>From → To</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Block</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-tbody">
+                        {% for tx in recent_transactions %}
+                        <tr>
+                            <td><span class="tx-id">{{ tx.id }}</span></td>
+                            <td>
+                                <span class="tx-type {{ tx.type.lower().replace(' ', '-') }}">
+                                    {{ tx.type }}
+                                </span>
+                            </td>
+                            <td>{{ tx.from_to }}</td>
+                            <td><span class="tx-amount">{{ tx.amount }}</span></td>
+                            <td>
+                                <span class="tx-status {{ tx.status.lower() }}">
+                                    {{ tx.status }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if tx.block_index != 'Pending' %}
+                                <a href="/blockchain/block/{{ tx.block_index }}" class="text-decoration-none">
+                                    #{{ tx.block_index }}
+                                </a>
+                                {% else %}
+                                <span class="text-muted">{{ tx.block_index }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ format_timestamp(tx.timestamp) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="no-data">
+                <i class="bi bi-arrow-left-right"></i>
+                <h5>No transactions found</h5>
+                <p>No transactions have been recorded on the blockchain yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds
+    setInterval(updateLiveStats, 30000);
+    
+    // Initial load complete
+    console.log('Blockchain Explorer loaded successfully');
+});
+
+// Live statistics update
+function updateLiveStats() {
+    fetch('/api/blockchain/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error fetching stats:', data.error);
+                return;
+            }
+            
+            // Update statistics
+            document.getElementById('total-blocks').textContent = data.total_blocks;
+            document.getElementById('total-transactions').textContent = data.total_transactions;
+            document.getElementById('pending-transactions').textContent = data.pending_transactions;
+            document.getElementById('latest-hash').textContent = data.latest_block_hash;
+            
+            console.log('Stats updated:', data.last_update);
+        })
+        .catch(error => {
+            console.error('Failed to update stats:', error);
+        });
+}
+
+// Block details navigation
+function viewBlockDetails(blockIndex) {
+    window.location.href = `/blockchain/block/${blockIndex}`;
+}
+
+// Manual refresh functions
+function refreshBlocks() {
+    const btn = document.querySelector('.refresh-btn');
+    btn.classList.add('loading');
+    
+    setTimeout(() => {
+        location.reload();
+    }, 500);
+}
+
+function refreshTransactions() {
+    const btn = document.querySelectorAll('.refresh-btn')[1];
+    btn.classList.add('loading');
+    
+    setTimeout(() => {
+        location.reload();
+    }, 500);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // R key for refresh
+    if (e.key === 'r' || e.key === 'R') {
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            updateLiveStats();
+        }
+    }
+    
+    // H key for home
+    if (e.key === 'h' || e.key === 'H') {
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            window.location.href = '/';
+        }
+    }
+});
+
+// Tooltip initialization for technical details
+const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+const tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+
+// Add loading states to cards
+document.querySelectorAll('.block-card').forEach(card => {
+    card.addEventListener('click', function() {
+        this.style.opacity = '0.7';
+        this.style.transform = 'scale(0.98)';
+    });
+});
+
+// Connection status monitoring
+let connectionLost = false;
+
+window.addEventListener('online', function() {
+    if (connectionLost) {
+        location.reload();
+    }
+});
+
+window.addEventListener('offline', function() {
+    connectionLost = true;
+    console.warn('Connection lost - updates paused');
+});
+</script>
+{% endblock %}

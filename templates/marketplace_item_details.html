@@ -1,0 +1,1201 @@
+{% extends "base_layout.html" %}
+
+{% block title %}{{ item.name }} | Marketplace{% endblock %}
+
+{% block additional_styles %}
+.item-details {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 200px);
+}
+
+.item-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.item-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.item-subtitle {
+    opacity: 0.9;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.item-type-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.item-type-badge.dataset {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.item-type-badge.model {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.verification-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.2);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.verification-badge i {
+    color: var(--success-color);
+}
+
+.navigation-bar {
+    background: white;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.breadcrumb-custom {
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-custom .breadcrumb-item a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.breadcrumb-custom .breadcrumb-item.active {
+    color: var(--gray-600);
+}
+
+.back-btn {
+    padding: 0.5rem 1rem;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.back-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.content-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    border-radius: 12px 12px 0 0;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-dark);
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.section-body {
+    padding: 1.5rem;
+}
+
+.description-text {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--gray-700);
+    margin-bottom: 1.5rem;
+}
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.metadata-item {
+    background: var(--gray-50);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.metadata-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.metadata-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.tag {
+    padding: 0.5rem 1rem;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.quality-indicator {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(45deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.quality-score {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.score-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--success-color);
+}
+
+.score-stars {
+    color: var(--warning-color);
+    font-size: 1.2rem;
+}
+
+.blockchain-info {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1.5rem;
+}
+
+.blockchain-title {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.blockchain-details {
+    font-size: 0.9rem;
+    color: var(--gray-700);
+}
+
+.hash-display {
+    font-family: 'Courier New', monospace;
+    background: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--gray-300);
+    margin: 0.5rem 0;
+    word-break: break-all;
+    position: relative;
+}
+
+.copy-hash-btn {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hash-display:hover .copy-hash-btn {
+    opacity: 1;
+}
+
+.sidebar {
+    height: fit-content;
+}
+
+.purchase-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.purchase-header {
+    background: linear-gradient(45deg, var(--success-color), var(--primary-color));
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.price-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.price-label {
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.purchase-body {
+    padding: 1.5rem;
+}
+
+.purchase-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 1rem;
+}
+
+.purchase-btn:hover:not(:disabled) {
+    background: var(--success-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.purchase-btn:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.purchase-info {
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    text-align: center;
+    line-height: 1.4;
+}
+
+.owner-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.owner-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.owner-avatar {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.owner-details h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-dark);
+}
+
+.owner-address {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    background: var(--gray-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+}
+
+.similar-items {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem;
+}
+
+.similar-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.similar-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.similar-item:last-child {
+    margin-bottom: 0;
+}
+
+.similar-item-info h5 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    color: var(--text-dark);
+}
+
+.similar-item-type {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+.similar-item-price {
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.warning-banner {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.warning-banner i {
+    color: var(--warning-color);
+}
+
+.success-banner {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.success-banner i {
+    color: var(--success-color);
+}
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: none;
+}
+
+.purchase-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 1001;
+    max-width: 500px;
+    width: 90%;
+    display: none;
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.modal-body {
+    margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s;
+}
+
+.modal-btn.primary {
+    background: var(--success-color);
+    color: white;
+}
+
+.modal-btn.secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .sidebar {
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .item-title {
+        font-size: 2rem;
+    }
+    
+    .item-subtitle {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .metadata-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .purchase-modal {
+        padding: 1.5rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="item-details">
+    <!-- Item Header -->
+    <section class="item-header">
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="item-subtitle">
+                        <span class="item-type-badge {{ item.type }}">{{ item.type.title() }}</span>
+                        {% if item.blockchain_verified %}
+                        <span class="verification-badge">
+                            <i class="bi bi-shield-check"></i>
+                            Blockchain Verified
+                        </span>
+                        {% endif %}
+                        <span>Hochgeladen am {{ item.formatted_date }}</span>
+                    </div>
+                    <h1 class="item-title">{{ item.name }}</h1>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Navigation Bar -->
+        <div class="navigation-bar">
+            <div class="d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb breadcrumb-custom">
+                        <li class="breadcrumb-item">
+                            <a href="/">Home</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/marketplace">Marketplace</a>
+                        </li>
+                        <li class="breadcrumb-item active">{{ item.name[:30] }}{% if item.name|length > 30 %}...{% endif %}</li>
+                    </ol>
+                </nav>
+                <a href="/marketplace" class="back-btn">
+                    <i class="bi bi-arrow-left"></i>
+                    Zurück zum Marketplace
+                </a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Main Content -->
+            <div class="content-area">
+                <!-- Description Section -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <i class="bi bi-file-text"></i>
+                            Beschreibung
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <p class="description-text">{{ item.description }}</p>
+                        
+                        {% if item.tags %}
+                        <div class="tags-container">
+                            {% for tag in item.tags %}
+                            <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        
+                        {% if item.quality_score > 0 %}
+                        <div class="quality-indicator">
+                            <div class="quality-score">
+                                <span class="score-number">{{ "%.1f"|format(item.quality_score) }}</span>
+                                <span class="score-stars">
+                                    {% for i in range((item.quality_score / 2)|int) %}★{% endfor %}
+                                </span>
+                            </div>
+                            <div>
+                                <strong>Quality Score</strong><br>
+                                <small>Basierend auf Datenqualität und Community-Bewertungen</small>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Technical Details -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <i class="bi bi-gear"></i>
+                            Technische Details
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="metadata-grid">
+                            <div class="metadata-item">
+                                <div class="metadata-label">Kategorie</div>
+                                <div class="metadata-value">{{ item.category }}</div>
+                            </div>
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Format</div>
+                                <div class="metadata-value">{{ item.format }}</div>
+                            </div>
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Größe</div>
+                                <div class="metadata-value">{{ item.size }}</div>
+                            </div>
+                            
+                            {% if item.type == 'dataset' %}
+                            <div class="metadata-item">
+                                <div class="metadata-label">Anzahl Samples</div>
+                                <div class="metadata-value">{{ "{:,}".format(item.samples) }}</div>
+                            </div>
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Features</div>
+                                <div class="metadata-value">{{ item.features }}</div>
+                            </div>
+                            {% else %}
+                            <div class="metadata-item">
+                                <div class="metadata-label">Framework</div>
+                                <div class="metadata-value">{{ item.framework }}</div>
+                            </div>
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Modell-Typ</div>
+                                <div class="metadata-value">{{ item.model_type }}</div>
+                            </div>
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Genauigkeit</div>
+                                <div class="metadata-value">{{ item.accuracy }}</div>
+                            </div>
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Parameter</div>
+                                <div class="metadata-value">{{ item.parameters }}</div>
+                            </div>
+                            
+                            {% if item.input_size %}
+                            <div class="metadata-item">
+                                <div class="metadata-label">Input-Größe</div>
+                                <div class="metadata-value">{{ item.input_size }}</div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if item.training_dataset %}
+                            <div class="metadata-item">
+                                <div class="metadata-label">Trainings-Datensatz</div>
+                                <div class="metadata-value">{{ item.training_dataset }}</div>
+                            </div>
+                            {% endif %}
+                            {% endif %}
+                            
+                            <div class="metadata-item">
+                                <div class="metadata-label">Letzte Aktualisierung</div>
+                                <div class="metadata-value">{{ item.last_updated }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blockchain Information -->
+                <div class="content-section">
+                    <div class="section-header">
+                        <h3 class="section-title">
+                            <i class="bi bi-shield-check"></i>
+                            Blockchain-Verifikation
+                        </h3>
+                    </div>
+                    <div class="section-body">
+                        <div class="blockchain-info">
+                            <div class="blockchain-title">
+                                <i class="bi bi-link-45deg"></i>
+                                Unveränderlich gespeichert auf der Blockchain
+                            </div>
+                            <div class="blockchain-details">
+                                <p><strong>Block #:</strong> {{ item.block_index }}</p>
+                                <p><strong>Transaktions-ID:</strong></p>
+                                <div class="hash-display">
+                                    {{ item.id }}
+                                    <button class="copy-hash-btn" onclick="copyToClipboard('{{ item.id }}', this)">
+                                        Copy
+                                    </button>
+                                </div>
+                                <p><strong>Upload-Zeitstempel:</strong> {{ item.formatted_date }}</p>
+                                <p><small>Diese Informationen sind unveränderlich in der Blockchain gespeichert und garantieren die Authentizität und Herkunft des Items.</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Purchase Card -->
+                <div class="purchase-card">
+                    <div class="purchase-header">
+                        <div class="price-display">${{ "%.2f"|format(item.price) }}</div>
+                        <div class="price-label">Einmaliger Kauf</div>
+                    </div>
+                    <div class="purchase-body">
+                        {% if is_owner %}
+                        <div class="success-banner">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Du bist der Besitzer dieses Items</span>
+                        </div>
+                        <button class="purchase-btn" disabled>
+                            <i class="bi bi-person-check me-2"></i>
+                            Bereits im Besitz
+                        </button>
+                        {% elif has_purchased %}
+                        <div class="success-banner">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Du hast dieses Item bereits gekauft</span>
+                        </div>
+                        <button class="purchase-btn" disabled>
+                            <i class="bi bi-download me-2"></i>
+                            Bereits gekauft
+                        </button>
+                        {% elif not is_logged_in() %}
+                        <div class="warning-banner">
+                            <i class="bi bi-info-circle"></i>
+                            <span>Du musst eingeloggt sein, um Items zu kaufen</span>
+                        </div>
+                        <a href="/login" class="purchase-btn" style="display: block; text-align: center; text-decoration: none;">
+                            <i class="bi bi-person me-2"></i>
+                            Einloggen zum Kaufen
+                        </a>
+                        {% else %}
+                        <button class="purchase-btn" onclick="showPurchaseModal()">
+                            <i class="bi bi-cart-plus me-2"></i>
+                            Jetzt kaufen
+                        </button>
+                        {% endif %}
+                        
+                        <div class="purchase-info">
+                            <i class="bi bi-shield-check me-1"></i>
+                            Sicherer Kauf über Blockchain<br>
+                            <i class="bi bi-download me-1"></i>
+                            Sofortiger Zugriff nach Kauf<br>
+                            <i class="bi bi-infinity me-1"></i>
+                            Lebenslanger Zugang
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Owner Information -->
+                <div class="owner-card">
+                    <h4>Item-Besitzer</h4>
+                    <div class="owner-info">
+                        <div class="owner-avatar">
+                            {{ item.owner[0].upper() }}
+                        </div>
+                        <div class="owner-details">
+                            <h4>{{ format_address(item.owner, 15, 8) }}</h4>
+                            <div class="owner-address">{{ item.owner }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-value">{{ item.block_index + 1 }}</span>
+                        <div class="stat-label">Block #</div>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-value">{{ item.type.title() }}</span>
+                        <div class="stat-label">Typ</div>
+                    </div>
+                </div>
+
+                <!-- Similar Items -->
+                {% if similar_items %}
+                <div class="similar-items">
+                    <h4>Ähnliche Items</h4>
+                    {% for similar in similar_items %}
+                    <div class="similar-item" onclick="viewItem('{{ similar.id }}')">
+                        <div class="similar-item-info">
+                            <h5>{{ similar.name[:25] }}{% if similar.name|length > 25 %}...{% endif %}</h5>
+                            <div class="similar-item-type">{{ similar.type.title() }}</div>
+                        </div>
+                        <div class="similar-item-price">${{ "%.2f"|format(similar.price) }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Purchase Modal -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="hidePurchaseModal()"></div>
+<div class="purchase-modal" id="purchase-modal">
+    <div class="modal-header">
+        <h3 class="modal-title">Kauf bestätigen</h3>
+        <p>Möchtest du "{{ item.name }}" für ${{ "%.2f"|format(item.price) }} kaufen?</p>
+    </div>
+    <div class="modal-body">
+        <div class="metadata-grid">
+            <div class="metadata-item">
+                <div class="metadata-label">Item</div>
+                <div class="metadata-value">{{ item.name[:20] }}{% if item.name|length > 20 %}...{% endif %}</div>
+            </div>
+            <div class="metadata-item">
+                <div class="metadata-label">Preis</div>
+                <div class="metadata-value">${{ "%.2f"|format(item.price) }}</div>
+            </div>
+            <div class="metadata-item">
+                <div class="metadata-label">Typ</div>
+                <div class="metadata-value">{{ item.type.title() }}</div>
+            </div>
+            <div class="metadata-item">
+                <div class="metadata-label">Besitzer</div>
+                <div class="metadata-value">{{ format_address(item.owner, 10, 6) }}</div>
+            </div>
+        </div>
+        <div class="warning-banner mt-3">
+            <i class="bi bi-info-circle"></i>
+            <span>Der Kauf wird als Blockchain-Transaktion verarbeitet und kann nicht rückgängig gemacht werden.</span>
+        </div>
+    </div>
+    <div class="modal-actions">
+        <form action="/marketplace/purchase" method="POST" style="display: inline;">
+            <input type="hidden" name="item_id" value="{{ item.id }}">
+            <button type="submit" class="modal-btn primary">
+                <i class="bi bi-cart-check me-2"></i>
+                Kauf bestätigen
+            </button>
+        </form>
+        <button class="modal-btn secondary" onclick="hidePurchaseModal()">
+            <i class="bi bi-x me-2"></i>
+            Abbrechen
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Item details loaded for:', '{{ item.name }}');
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Check if user came from marketplace and show back button animation
+    if (document.referrer.includes('/marketplace')) {
+        const backBtn = document.querySelector('.back-btn');
+        if (backBtn) {
+            backBtn.style.background = 'var(--primary-color)';
+            backBtn.style.color = 'white';
+            setTimeout(() => {
+                backBtn.style.background = '';
+                backBtn.style.color = '';
+            }, 2000);
+        }
+    }
+});
+
+// Purchase modal functions
+function showPurchaseModal() {
+    const backdrop = document.getElementById('modal-backdrop');
+    const modal = document.getElementById('purchase-modal');
+    
+    backdrop.style.display = 'block';
+    modal.style.display = 'block';
+    
+    // Animate in
+    setTimeout(() => {
+        backdrop.style.opacity = '1';
+        modal.style.transform = 'translate(-50%, -50%) scale(1)';
+    }, 10);
+    
+    // Prevent body scrolling
+    document.body.style.overflow = 'hidden';
+}
+
+function hidePurchaseModal() {
+    const backdrop = document.getElementById('modal-backdrop');
+    const modal = document.getElementById('purchase-modal');
+    
+    // Animate out
+    backdrop.style.opacity = '0';
+    modal.style.transform = 'translate(-50%, -50%) scale(0.9)';
+    
+    setTimeout(() => {
+        backdrop.style.display = 'none';
+        modal.style.display = 'none';
+    }, 300);
+    
+    // Restore body scrolling
+    document.body.style.overflow = '';
+}
+
+// Copy to clipboard functionality
+function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(function() {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.background = 'var(--success-color)';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = 'var(--primary-color)';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        button.textContent = 'Error';
+        button.style.background = 'var(--danger-color)';
+        
+        setTimeout(() => {
+            button.textContent = 'Copy';
+            button.style.background = 'var(--primary-color)';
+        }, 2000);
+    });
+}
+
+// Navigate to similar items
+function viewItem(itemId) {
+    // Add loading state
+    event.target.closest('.similar-item').style.opacity = '0.7';
+    
+    // Navigate
+    window.location.href = `/marketplace/item/${itemId}`;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    // Escape key to close modal
+    if (e.key === 'Escape') {
+        hidePurchaseModal();
+    }
+    
+    // B key to go back
+    if (e.key === 'b' || e.key === 'B') {
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            window.location.href = '/marketplace';
+        }
+    }
+    
+    // P key to purchase (if available)
+    if (e.key === 'p' || e.key === 'P') {
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            const purchaseBtn = document.querySelector('.purchase-btn:not(:disabled)');
+            if (purchaseBtn && !purchaseBtn.disabled) {
+                if (purchaseBtn.onclick) {
+                    purchaseBtn.onclick();
+                } else {
+                    purchaseBtn.click();
+                }
+            }
+        }
+    }
+    
+    // H key for home
+    if (e.key === 'h' || e.key === 'H') {
+        if (!e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            window.location.href = '/';
+        }
+    }
+});
+
+// Enhanced purchase button interaction
+const purchaseBtn = document.querySelector('.purchase-btn:not(:disabled)');
+if (purchaseBtn) {
+    purchaseBtn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+    });
+    
+    purchaseBtn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+    });
+}
+
+// Modal backdrop smooth transition
+const modalBackdrop = document.getElementById('modal-backdrop');
+const purchaseModal = document.getElementById('purchase-modal');
+
+if (modalBackdrop && purchaseModal) {
+    modalBackdrop.style.transition = 'opacity 0.3s ease';
+    purchaseModal.style.transition = 'transform 0.3s ease';
+    purchaseModal.style.transform = 'translate(-50%, -50%) scale(0.9)';
+}
+
+// Scroll animations for content sections
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const sectionObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.transform = 'translateY(0)';
+            entry.target.style.opacity = '1';
+        }
+    });
+}, observerOptions);
+
+// Apply observer to content sections
+document.querySelectorAll('.content-section').forEach(section => {
+    section.style.transform = 'translateY(20px)';
+    section.style.opacity = '0';
+    section.style.transition = 'transform 0.6s ease, opacity 0.6s ease';
+    sectionObserver.observe(section);
+});
+
+// Loading state for form submission
+const purchaseForm = document.querySelector('form[action="/marketplace/purchase"]');
+if (purchaseForm) {
+    purchaseForm.addEventListener('submit', function() {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Verarbeite Kauf...';
+            submitBtn.disabled = true;
+        }
+        
+        // Hide modal after a short delay to show loading state
+        setTimeout(() => {
+            hidePurchaseModal();
+        }, 500);
+    });
+}
+
+// Analytics tracking
+function trackItemView() {
+    console.log('Item viewed:', '{{ item.id }}');
+    // Send analytics event
+}
+
+function trackPurchaseIntent() {
+    console.log('Purchase intent for:', '{{ item.id }}');
+    // Send analytics event
+}
+
+// Track item view on page load
+trackItemView();
+
+// Track purchase intent when modal is opened
+const originalShowModal = showPurchaseModal;
+showPurchaseModal = function() {
+    trackPurchaseIntent();
+    originalShowModal();
+};
+
+// Auto-hide loading states after navigation
+window.addEventListener('pageshow', function(event) {
+    // Reset any loading states
+    document.querySelectorAll('.similar-item').forEach(item => {
+        item.style.opacity = '';
+    });
+});
+
+// Enhanced error handling for purchase
+function handlePurchaseError(error) {
+    console.error('Purchase error:', error);
+    
+    // Show error message in modal
+    const modalBody = document.querySelector('.modal-body');
+    if (modalBody) {
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'warning-banner mt-3';
+        errorDiv.innerHTML = `
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>Fehler beim Kaufvorgang: ${error}. Bitte versuche es erneut.</span>
+        `;
+        modalBody.appendChild(errorDiv);
+        
+        // Remove error after 5 seconds
+        setTimeout(() => {
+            errorDiv.remove();
+        }, 5000);
+    }
+}
+
+// Connection status monitoring
+let connectionLost = false;
+
+window.addEventListener('online', function() {
+    if (connectionLost) {
+        location.reload();
+    }
+});
+
+window.addEventListener('offline', function() {
+    connectionLost = true;
+    console.warn('Connection lost - purchase functionality disabled');
+    
+    // Disable purchase button if offline
+    const purchaseBtn = document.querySelector('.purchase-btn:not(:disabled)');
+    if (purchaseBtn) {
+        purchaseBtn.disabled = true;
+        purchaseBtn.innerHTML = '<i class="bi bi-wifi-off me-2"></i>Offline - Kauf nicht möglich';
+    }
+});
+</script>
+{% endblock %}

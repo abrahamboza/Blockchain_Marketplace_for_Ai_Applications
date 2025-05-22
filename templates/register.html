@@ -1,0 +1,140 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Registrieren | Data Marketplace Mockup{% endblock %}
+
+{% block content %}
+<section class="auth-section py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="auth-card">
+                    <div class="card-header">
+                        <h2 class="text-center mb-0">Registrieren</h2>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('register') }}">
+                            <div class="mb-4">
+                                <label for="username" class="form-label">Benutzername</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                                <div class="form-text">Dein Benutzername wird öffentlich auf dem Marktplatz angezeigt.</div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="password" class="form-label">Passwort</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                    <input type="password" class="form-control" id="password" name="password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" onclick="togglePasswordVisibility('password', 'togglePassword')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">Wähle ein sicheres Passwort.</div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="confirm_password" class="form-label">Passwort bestätigen</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword" onclick="togglePasswordVisibility('confirm_password', 'toggleConfirmPassword')">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mb-4 form-check">
+                                <input type="checkbox" class="form-check-input" id="termsAgreement" name="terms_agreement" required>
+                                <label class="form-check-label" for="termsAgreement">
+                                    Ich akzeptiere die <a href="#">Nutzungsbedingungen</a> und <a href="#">Datenschutzrichtlinien</a>
+                                </label>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary">Registrieren</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center">
+                        <p class="mb-0">Bereits registriert? <a href="{{ url_for('login') }}">Anmelden</a></p>
+                    </div>
+                </div>
+                
+                <!-- Blockchain Info -->
+                <div class="blockchain-info mt-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-info-circle me-2"></i>Über Blockchain-Adressen</h5>
+                            <p class="card-text">Bei der Registrierung wird automatisch eine Blockchain-Adresse für dich generiert. Diese Adresse wird für alle deine Transaktionen auf dem Marketplace verwendet.</p>
+                            <p class="card-text text-muted small">
+                                <i>Hinweis: In dieser Demo-Version werden Adressen vereinfacht dargestellt. In einer echten Blockchain-Anwendung würden kryptographisch sichere Schlüsselpaare verwendet.</i>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block additional_styles %}
+.auth-section {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 250px);
+    display: flex;
+    align-items: center;
+}
+
+.auth-card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    border: none;
+}
+
+.auth-card .card-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 1.5rem;
+    border-bottom: none;
+}
+
+.auth-card .card-body {
+    padding: 2rem;
+}
+
+.auth-card .card-footer {
+    background-color: white;
+    border-top: 1px solid var(--gray-200);
+    padding: 1rem;
+}
+
+.blockchain-info .card {
+    border: 1px dashed var(--gray-300);
+    background-color: rgba(255, 255, 255, 0.7);
+}
+
+.blockchain-info .card-title {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Client-side Passwort-Validierung
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        form.addEventListener('submit', function(event) {
+            if (password.value !== confirmPassword.value) {
+                event.preventDefault();
+                alert('Die Passwörter stimmen nicht überein!');
+                confirmPassword.focus();
+            }
+        });
+    });
+</script>
+{% endblock %}
