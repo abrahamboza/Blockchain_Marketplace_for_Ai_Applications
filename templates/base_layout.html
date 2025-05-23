@@ -71,8 +71,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/training/dashboard" id="nav-training">ML Training</a>
                     </li>
-                    {% endif %}
-                    {% if is_logged_in() %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/marketplace/my-purchases" id="nav-my-purchases">Meine Käufe</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/admin" id="nav-admin">Admin</a>
                     </li>
@@ -141,6 +142,9 @@ datenbasierte Lernsysteme" gehört</p>
                         <li><a href="/training/dashboard">ML Training</a></li>
                         <li><a href="/upload-dataset">Daten hochladen</a></li>
                         <li><a href="/blockchain">Blockchain</a></li>
+                        {% if is_logged_in() %}
+                        <li><a href="/marketplace/my-purchases">Meine Käufe</a></li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-6 mb-4">
@@ -223,6 +227,9 @@ datenbasierte Lernsysteme" gehört</p>
             if (currentPath === '/') {
                 const homeLink = document.getElementById('nav-home');
                 if (homeLink) homeLink.classList.add('active');
+            } else if (currentPath.startsWith('/marketplace/my-purchases')) {
+                const myPurchasesLink = document.getElementById('nav-my-purchases');
+                if (myPurchasesLink) myPurchasesLink.classList.add('active');
             } else if (currentPath.startsWith('/marketplace')) {
                 const marketplaceLink = document.getElementById('nav-marketplace');
                 if (marketplaceLink) marketplaceLink.classList.add('active');
@@ -235,6 +242,9 @@ datenbasierte Lernsysteme" gehört</p>
             } else if (currentPath.startsWith('/admin')) {
                 const adminLink = document.getElementById('nav-admin');
                 if (adminLink) adminLink.classList.add('active');
+            } else if (currentPath.startsWith('/upload')) {
+                const uploadLink = document.querySelector('.nav-link[href="/upload-dataset"]');
+                if (uploadLink) uploadLink.classList.add('active');
             }
         });
 

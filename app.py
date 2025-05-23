@@ -11,7 +11,9 @@ import json
 import os
 from werkzeug.utils import secure_filename
 from marketplace import MarketplaceBlockchain
-
+from flask import send_file
+import io
+import json
 # Flask App Initialisierung
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'entwicklungsschluessel')
@@ -1328,6 +1330,369 @@ def start_mining():
             'mining_time': mining_time,
             'transactions_mined': len(new_block.transactions),
             'difficulty': difficulty
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+###########################################
+#EINKAEUFE EINSEHEN
+##########################################
+# Route für "Meine Käufe" Dashboard
+@app.route('/marketplace/my-purchases')
+@login_required
+def my_purchases():
+    """Dashboard für gekaufte Items mit korrigierter ID-Logik"""
+
+    try:
+        user_address = session.get('blockchain_address')
+
+        purchased_items = []
+        pending_purchases = []
+
+        # 1. Suche in der Blockchain nach bestätigten Käufen
+        for block in blockchain.chain:
+            for tx in block.transactions:
+                if (tx.get('type') in ['data_purchase', 'model_purchase']
+                        and tx.get('buyer') == user_address):
+                    # WICHTIG: item_id ist die ORIGINAL Upload-Transaction-ID
+                    original_item_id = tx.get('data_id') or tx.get('model_id')
+
+                    print(f"DEBUG: Gefundener Kauf - Original Item ID: {original_item_id}")
+
+                    # Suche Original-Upload für Details
+                    original_item = find_original_item(original_item_id)
+
+                    purchased_item = {
+                        'purchase_tx_id': tx.get('transaction_id'),  # Purchase-Transaction-ID
+                        'item_id': original_item_id,  # ORIGINAL Upload-Transaction-ID für Download
+                        'item_name': original_item.get('name', 'Unknown') if original_item else 'Unknown',
+                        'item_type': 'Dataset' if tx.get('type') == 'data_purchase' else 'Model',
+                        'purchase_amount': tx.get('amount', 0),
+                        'purchase_date': datetime.fromtimestamp(tx.get('timestamp', block.timestamp)).strftime(
+                            "%d.%m.%Y %H:%M"),
+                        'block_index': block.index,
+                        'seller': tx.get('seller', 'Unknown'),
+                        'status': 'confirmed',
+                        'can_download': True,
+                        'original_metadata': original_item.get('metadata', {}) if original_item else {}
+                    }
+                    purchased_items.append(purchased_item)
+
+        # 2. Suche in Pending Transactions nach wartenden Käufen
+        for tx in blockchain.current_transactions:
+            if (tx.get('type') in ['data_purchase', 'model_purchase']
+                    and tx.get('buyer') == user_address):
+                original_item_id = tx.get('data_id') or tx.get('model_id')
+                original_item = find_original_item(original_item_id)
+
+                pending_item = {
+                    'purchase_tx_id': tx.get('transaction_id'),
+                    'item_id': original_item_id,  # Auch hier: Original Item ID
+                    'item_name': original_item.get('name', 'Unknown') if original_item else 'Unknown',
+                    'item_type': 'Dataset' if tx.get('type') == 'data_purchase' else 'Model',
+                    'purchase_amount': tx.get('amount', 0),
+                    'purchase_date': datetime.fromtimestamp(tx.get('timestamp', time.time())).strftime(
+                        "%d.%m.%Y %H:%M"),
+                    'block_index': 'Pending',
+                    'seller': tx.get('seller', 'Unknown'),
+                    'status': 'pending',
+                    'can_download': False,
+                    'original_metadata': original_item.get('metadata', {}) if original_item else {}
+                }
+                pending_purchases.append(pending_item)
+
+        # Nach Datum sortieren
+        all_purchases = pending_purchases + purchased_items
+        all_purchases.sort(key=lambda x: x['purchase_date'], reverse=True)
+
+        # Statistiken
+        stats = {
+            'total_purchases': len(purchased_items),
+            'pending_purchases': len(pending_purchases),
+            'total_spent': sum(item['purchase_amount'] for item in purchased_items),
+            'pending_amount': sum(item['purchase_amount'] for item in pending_purchases)
+        }
+
+        print(f"DEBUG: Gefunden - {len(purchased_items)} bestätigte, {len(pending_purchases)} wartende Käufe")
+
+        return render_template('my_purchases.html',
+                               purchases=all_purchases,
+                               stats=stats)
+
+    except Exception as e:
+        print(f"ERROR in my_purchases: {str(e)}")
+        flash(f'Fehler beim Laden der Käufe: {str(e)}', 'danger')
+        return redirect(url_for('marketplace'))
+
+
+def find_original_item(item_id):
+    """Findet Original-Upload mit verbessertem Logging"""
+
+    print(f"DEBUG Original: Suche Original-Item für ID {item_id}")
+
+    for block_idx, block in enumerate(blockchain.chain):
+        for tx_idx, tx in enumerate(block.transactions):
+            if (tx.get('type') in ['data_upload', 'model_upload']
+                    and tx.get('transaction_id') == item_id):
+                print(f"DEBUG Original: GEFUNDEN in Block {block_idx}, TX {tx_idx}")
+
+                metadata = tx.get('metadata', {})
+                return {
+                    'name': metadata.get('name', 'Unknown'),
+                    'description': metadata.get('description', ''),
+                    'metadata': metadata,
+                    'owner': tx.get('owner', 'Unknown'),
+                    'price': tx.get('price', 0)
+                }
+
+    print(f"DEBUG Original: NICHT GEFUNDEN für ID {item_id}")
+    return None
+
+# Download Route für gekaufte Items
+@app.route('/marketplace/download/<item_id>')
+@login_required
+def download_item(item_id):
+    """Download für gekaufte Items mit korrigierter Schlüssel-Logik"""
+
+    try:
+        user_address = session.get('blockchain_address')
+
+        print(f"DEBUG Download: User {user_address} möchte Item {item_id} downloaden")
+
+        # 1. Prüfe Berechtigung
+        has_permission = check_download_permission(user_address, item_id)
+        print(f"DEBUG Download: Berechtigung für {item_id}: {has_permission}")
+
+        if not has_permission:
+            flash('Du hast keine Berechtigung zum Download dieses Items.', 'danger')
+            return redirect(url_for('my_purchases'))
+
+        # 2. Suche Original-Item
+        original_item = find_original_item(item_id)
+        if not original_item:
+            print(f"DEBUG Download: Original Item {item_id} nicht gefunden")
+            flash('Item nicht gefunden.', 'danger')
+            return redirect(url_for('my_purchases'))
+
+        print(f"DEBUG Download: Original Item gefunden: {original_item.get('name')}")
+
+        # 3. Lade Verschlüsselungsschlüssel mit User-Adresse
+        encryption_key = load_encryption_key(item_id, user_address)
+        if not encryption_key:
+            print(f"DEBUG Download: Kein Schlüssel für Item {item_id} und User {user_address} gefunden")
+
+            # Zeige verfügbare Schlüssel für Debug
+            show_available_keys()
+
+            flash('Verschlüsselungsschlüssel nicht gefunden.', 'danger')
+            return redirect(url_for('my_purchases'))
+
+        print(f"DEBUG Download: Schlüssel gefunden für {item_id}")
+
+        # 4. Lade und entschlüssele Datei
+        try:
+            print(f"DEBUG Download: Versuche Datei zu entschlüsseln...")
+            decrypted_content = blockchain.get_data_file(user_address, item_id, encryption_key)
+            print(f"DEBUG Download: Entschlüsselung erfolgreich, {len(decrypted_content)} Bytes")
+
+            # 5. Bereite Download vor
+            metadata = original_item['metadata']
+            filename = metadata.get('original_filename', f"{metadata.get('name', 'download')}.dat")
+
+            file_stream = io.BytesIO(decrypted_content)
+            file_stream.seek(0)
+
+            content_type = get_content_type(filename)
+
+            print(f"DEBUG Download: Sende Datei {filename} ({content_type})")
+
+            return send_file(
+                file_stream,
+                as_attachment=True,
+                download_name=filename,
+                mimetype=content_type
+            )
+
+        except Exception as decrypt_error:
+            print(f"DEBUG Download: Entschlüsselungsfehler: {str(decrypt_error)}")
+            flash(f'Fehler beim Entschlüsseln der Datei: {str(decrypt_error)}', 'danger')
+            return redirect(url_for('my_purchases'))
+
+    except Exception as e:
+        print(f"ERROR in download_item: {str(e)}")
+        flash(f'Download-Fehler: {str(e)}', 'danger')
+        return redirect(url_for('my_purchases'))
+
+
+def check_download_permission(user_address, item_id):
+    """Prüft Download-Berechtigung mit verbessertem Logging"""
+
+    print(f"DEBUG Berechtigung: Prüfe für User {user_address}, Item {item_id}")
+
+    # 1. Prüfe ob User der Owner ist
+    original_item = find_original_item(item_id)
+    if original_item and original_item.get('owner') == user_address:
+        print(f"DEBUG Berechtigung: User ist Owner von {item_id}")
+        return True
+
+    # 2. Prüfe ob User das Item gekauft hat
+    purchase_found = False
+    for block in blockchain.chain:
+        for tx in block.transactions:
+            if (tx.get('type') in ['data_purchase', 'model_purchase']
+                    and tx.get('buyer') == user_address):
+
+                purchased_item_id = tx.get('data_id') or tx.get('model_id')
+
+                print(f"DEBUG Berechtigung: Gefundener Kauf - Item {purchased_item_id} von User {tx.get('buyer')}")
+
+                if purchased_item_id == item_id:
+                    print(f"DEBUG Berechtigung: MATCH! User hat {item_id} gekauft")
+                    purchase_found = True
+                    break
+
+        if purchase_found:
+            break
+
+    if not purchase_found:
+        print(f"DEBUG Berechtigung: KEIN Kauf von {item_id} durch {user_address} gefunden")
+
+    return purchase_found
+
+
+def load_encryption_key(item_id, user_address=None):
+    """Verbesserte Schlüssel-Lade-Funktion mit User-spezifischer Suche"""
+
+    print(f"DEBUG Schlüssel: Suche Schlüssel für item_id: {item_id}, user: {user_address}")
+
+    # Alle möglichen Schlüssel-Dateien durchsuchen
+    key_files = ['data_keys.json', 'EncryptionKeys.json']
+
+    for key_file in key_files:
+        if os.path.exists(key_file):
+            try:
+                print(f"DEBUG Schlüssel: Prüfe Datei {key_file}")
+
+                with open(key_file, 'r') as f:
+                    keys_data = json.load(f)
+
+                datasets = keys_data.get('datasets', [])
+                print(f"DEBUG Schlüssel: {len(datasets)} Einträge in {key_file}")
+
+                # Zuerst nach Käufer-spezifischem Eintrag suchen
+                if user_address:
+                    for i, dataset in enumerate(datasets):
+                        stored_id = dataset.get('data_id')
+                        purchased_by = dataset.get('purchased_by')
+
+                        print(f"DEBUG Schlüssel: Eintrag {i}: data_id = {stored_id}, purchased_by = {purchased_by}")
+
+                        if stored_id == item_id and purchased_by == user_address:
+                            encryption_key = dataset.get('encryption_key')
+                            print(f"DEBUG Schlüssel: KÄUFER-MATCH! Schlüssel gefunden in {key_file}")
+                            return encryption_key
+
+                # Dann nach Owner-Eintrag suchen (ohne purchased_by)
+                for i, dataset in enumerate(datasets):
+                    stored_id = dataset.get('data_id')
+                    purchased_by = dataset.get('purchased_by')
+
+                    if stored_id == item_id and not purchased_by:
+                        encryption_key = dataset.get('encryption_key')
+                        print(f"DEBUG Schlüssel: OWNER-MATCH! Schlüssel gefunden in {key_file}")
+                        return encryption_key
+
+            except Exception as e:
+                print(f"DEBUG Schlüssel: Fehler beim Lesen von {key_file}: {e}")
+
+    print(f"DEBUG Schlüssel: KEIN Schlüssel für {item_id} und User {user_address} gefunden!")
+    return None
+
+
+def show_available_keys():
+    """Debug-Funktion: Zeigt alle verfügbaren Schlüssel"""
+
+    print("DEBUG: === VERFÜGBARE SCHLÜSSEL ===")
+
+    key_files = ['data_keys.json', 'EncryptionKeys.json']
+
+    for key_file in key_files:
+        if os.path.exists(key_file):
+            try:
+                with open(key_file, 'r') as f:
+                    keys_data = json.load(f)
+
+                datasets = keys_data.get('datasets', [])
+                print(f"DEBUG: {key_file} enthält {len(datasets)} Schlüssel:")
+
+                for dataset in datasets:
+                    data_id = dataset.get('data_id')
+                    name = dataset.get('name', 'Unknown')
+                    print(f"  - ID: {data_id}, Name: {name}")
+
+            except Exception as e:
+                print(f"DEBUG: Fehler beim Lesen von {key_file}: {e}")
+        else:
+            print(f"DEBUG: {key_file} existiert nicht")
+
+    print("DEBUG: === ENDE SCHLÜSSEL-LISTE ===")
+
+def get_content_type(filename):
+    """Bestimmt Content-Type basierend auf Dateiendung"""
+
+    extension = filename.lower().split('.')[-1] if '.' in filename else ''
+
+    content_types = {
+        'csv': 'text/csv',
+        'json': 'application/json',
+        'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'xls': 'application/vnd.ms-excel',
+        'zip': 'application/zip',
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'pkl': 'application/octet-stream',
+        'h5': 'application/octet-stream',
+        'onnx': 'application/octet-stream',
+        'pt': 'application/octet-stream',
+        'pth': 'application/octet-stream'
+    }
+
+    return content_types.get(extension, 'application/octet-stream')
+
+
+# API Route für Status-Updates (AJAX)
+@app.route('/api/purchases/status')
+@login_required
+def purchase_status_api():
+    """API für Live-Updates des Purchase-Status"""
+
+    try:
+        user_address = session.get('blockchain_address')
+
+        # Zähle pending vs confirmed purchases
+        pending_count = 0
+        confirmed_count = 0
+
+        # Pending transactions
+        for tx in blockchain.current_transactions:
+            if (tx.get('type') in ['data_purchase', 'model_purchase']
+                    and tx.get('buyer') == user_address):
+                pending_count += 1
+
+        # Confirmed transactions
+        for block in blockchain.chain:
+            for tx in block.transactions:
+                if (tx.get('type') in ['data_purchase', 'model_purchase']
+                        and tx.get('buyer') == user_address):
+                    confirmed_count += 1
+
+        return jsonify({
+            'pending_purchases': pending_count,
+            'confirmed_purchases': confirmed_count,
+            'total_purchases': pending_count + confirmed_count,
+            'last_update': time.time()
         })
 
     except Exception as e:

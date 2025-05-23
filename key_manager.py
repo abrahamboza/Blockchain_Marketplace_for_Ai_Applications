@@ -48,7 +48,17 @@ def save_key(name, data_id, encryption_key):
 
 
 # Function to retrieve a key
-def get_key(data_id):
+def get_key(data_id, user_address=None):
+    """
+    Holt einen Schlüssel - entweder als Owner oder als Käufer
+
+    Args:
+        data_id: Die ID der Daten
+        user_address: Adresse des Users (optional)
+
+    Returns:
+        dict: Schlüssel-Informationen oder None
+    """
     file_path = "data_keys.json"
     if not os.path.exists(file_path):
         print("No keys file found")
@@ -59,11 +69,44 @@ def get_key(data_id):
 
     for dataset in data["datasets"]:
         if dataset["data_id"] == data_id:
-            return dataset
+            # Prüfe ob der User der Owner ist (kein "purchased_by" Feld)
+            if not dataset.get("purchased_by"):
+                return dataset
 
-    print(f"No key found for data_id {data_id}")
+            # Prüfe ob der User der Käufer ist
+            if user_address and dataset.get("purchased_by") == user_address:
+                return dataset
+
+    print(f"No key found for data_id {data_id} and user {user_address}")
     return None
 
+def get_key_for_user(data_id, user_address):
+    """
+    Spezielle Funktion um Schlüssel für einen bestimmten User zu finden
+    (Owner oder Käufer)
+    """
+    file_path = "data_keys.json"
+    if not os.path.exists(file_path):
+        return None
+
+    with open(file_path, 'r') as f:
+        data = json.load(f)
+
+    # Suche zuerst nach Käufer-Eintrag
+    for dataset in data["datasets"]:
+        if (dataset["data_id"] == data_id and
+            dataset.get("purchased_by") == user_address):
+            return dataset
+
+    # Wenn nicht als Käufer gefunden, suche nach Owner-Eintrag
+    for dataset in data["datasets"]:
+        if (dataset["data_id"] == data_id and
+            not dataset.get("purchased_by")):
+            # Das ist der Owner-Eintrag, prüfe ob User der Owner ist
+            # (Das müsste eigentlich über die Blockchain geprüft werden)
+            return dataset
+
+    return None
 
 # Function to decrypt and retrieve data using stored keys
 def retrieve_data(data_id, user_address="test_user"):

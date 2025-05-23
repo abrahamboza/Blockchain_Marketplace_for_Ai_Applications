@@ -282,6 +282,16 @@ class MarketplaceBlockchain(Blockchain):
             if not data_entry:
                 raise ValueError(f"Daten mit ID {data_id} nicht gefunden")
 
+            # Verschlüsselte Datei finden
+            encrypted_file = data_entry.encrypted_file
+            if not encrypted_file:
+                raise ValueError("Keine verschlüsselte Datei für diese Daten gefunden")
+
+            # Verschlüsselungsschlüssel aus der Schlüssel-Datei laden
+            encryption_key = self._load_encryption_key(data_id)
+            if not encryption_key:
+                raise ValueError(f"Verschlüsselungsschlüssel für {data_id} nicht gefunden")
+
             # Transaktion durchführen
             self.data_purchase_transaction(buyer_address, data_id, amount)
 
@@ -291,13 +301,10 @@ class MarketplaceBlockchain(Blockchain):
 
             session.commit()
 
-            # Der Schlüssel würde in einer realen Anwendung hier sicher übertragen,
-            # z.B. durch asymmetrische Verschlüsselung mit dem öffentlichen Schlüssel des Käufers
-            # Hier wird er einfach zurückgegeben
+            # Schlüssel für den Käufer speichern
+            self._save_key_for_buyer(buyer_address, data_id, encryption_key, data_entry)
 
-            # In einer Produktionsumgebung würde man hier die Transaktion bestätigen müssen,
-            # bevor der Schlüssel übergeben wird
-            return "SAMPLE_KEY_TRANSFER"  # Platzhalter
+            return encryption_key
         finally:
             session.close()
 
@@ -322,6 +329,16 @@ class MarketplaceBlockchain(Blockchain):
             if not model_entry:
                 raise ValueError(f"Modell mit ID {model_id} nicht gefunden")
 
+            # Verschlüsselte Datei finden
+            encrypted_file = model_entry.encrypted_file
+            if not encrypted_file:
+                raise ValueError("Keine verschlüsselte Datei für dieses Modell gefunden")
+
+            # Verschlüsselungsschlüssel aus der Schlüssel-Datei laden
+            encryption_key = self._load_encryption_key(model_id)
+            if not encryption_key:
+                raise ValueError(f"Verschlüsselungsschlüssel für {model_id} nicht gefunden")
+
             # Transaktion durchführen
             self.model_purchase_transaction(buyer_address, model_id, amount)
 
@@ -331,10 +348,92 @@ class MarketplaceBlockchain(Blockchain):
 
             session.commit()
 
-            # Der Schlüssel würde in einer realen Anwendung hier sicher übertragen werden
-            return "SAMPLE_KEY_TRANSFER"  # Platzhalter
+            # Schlüssel für den Käufer speichern
+            self._save_key_for_buyer(buyer_address, model_id, encryption_key, model_entry)
+
+            return encryption_key
         finally:
             session.close()
+
+    def _load_encryption_key(self, item_id):
+        """Lädt den Verschlüsselungsschlüssel für ein Item"""
+        import os
+        import json
+
+        # Prüfe verschiedene Schlüssel-Dateien
+        key_files = ['data_keys.json', 'EncryptionKeys.json']
+
+        for key_file in key_files:
+            if os.path.exists(key_file):
+                try:
+                    with open(key_file, 'r') as f:
+                        keys_data = json.load(f)
+
+                    datasets = keys_data.get('datasets', [])
+                    for dataset in datasets:
+                        if dataset.get('data_id') == item_id:
+                            return dataset.get('encryption_key')
+                except Exception as e:
+                    print(f"Fehler beim Lesen von {key_file}: {e}")
+
+        return None
+
+    def _save_key_for_buyer(self, buyer_address, item_id, encryption_key, item_entry):
+        """Speichert den Verschlüsselungsschlüssel für den Käufer"""
+        import os
+        import json
+        from datetime import datetime
+
+        # Lade oder erstelle data_keys.json
+        keys_file = 'data_keys.json'
+        if os.path.exists(keys_file):
+            with open(keys_file, 'r') as f:
+                keys_data = json.load(f)
+        else:
+            keys_data = {"datasets": []}
+
+        # Bestimme den Namen je nach Item-Typ
+        if hasattr(item_entry, 'data_metadata') and item_entry.data_metadata:
+            try:
+                metadata = json.loads(item_entry.data_metadata)
+                item_name = metadata.get('name', 'Unknown Dataset')
+            except:
+                item_name = 'Unknown Dataset'
+        elif hasattr(item_entry, 'model_metadata') and item_entry.model_metadata:
+            try:
+                metadata = json.loads(item_entry.model_metadata)
+                item_name = metadata.get('name', 'Unknown Model')
+            except:
+                item_name = 'Unknown Model'
+        else:
+            item_name = 'Unknown Item'
+
+        # Füge Eintrag für den Käufer hinzu (mit Käufer-Info)
+        buyer_key_entry = {
+            "name": item_name,
+            "data_id": item_id,
+            "encryption_key": encryption_key,
+            "upload_date": datetime.now().strftime('%Y-%m-%d'),
+            "purchased_by": buyer_address,  # Markiere als gekauft
+            "purchase_date": datetime.now().strftime('%Y-%m-%d')
+        }
+
+        # Prüfe ob bereits vorhanden (vermeiden von Duplikaten)
+        existing_entry = None
+        for entry in keys_data["datasets"]:
+            if (entry.get("data_id") == item_id and
+                    entry.get("purchased_by") == buyer_address):
+                existing_entry = entry
+                break
+
+        if not existing_entry:
+            keys_data["datasets"].append(buyer_key_entry)
+
+            # Speichere die aktualisierte Datei
+            with open(keys_file, 'w') as f:
+                json.dump(keys_data, f, indent=2)
+
+            print(f"Verschlüsselungsschlüssel für Käufer {buyer_address} gespeichert")
 
     # Update the get_data_file method to use IPFS
     def get_data_file(self, user_address, data_id, encryption_key):

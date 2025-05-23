@@ -1,0 +1,352 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Meine Käufe | Data Marketplace{% endblock %}
+
+{% block additional_styles %}
+.purchases-section {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 200px);
+}
+
+.purchases-header {
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--primary-color) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.status-pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.status-confirmed {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.purchase-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.purchase-card:hover {
+    transform: translateY(-2px);
+}
+
+.purchase-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.purchase-body {
+    padding: 1.5rem;
+}
+
+.download-btn {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s;
+}
+
+.download-btn:hover {
+    background: var(--success-dark);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.download-btn:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-top: 0.5rem;
+}
+
+.purchase-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.meta-item {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--gray-50);
+    border-radius: 6px;
+}
+
+.meta-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.meta-value {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.item-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.type-dataset {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.type-model {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--secondary-color);
+}
+
+.pending-indicator {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.no-purchases {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.no-purchases i {
+    font-size: 4rem;
+    color: var(--gray-400);
+    margin-bottom: 1rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="purchases-section">
+    <!-- Header -->
+    <section class="purchases-header">
+        <div class="container">
+            <h1><i class="bi bi-bag-check me-3"></i>Meine Käufe</h1>
+            <p class="lead mb-0">Übersicht über alle gekauften Datensätze und Modelle</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Statistiken -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.total_purchases }}</span>
+                <div class="stat-label">Bestätigte Käufe</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.pending_purchases }}</span>
+                <div class="stat-label">Wartende Käufe</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">${{ "%.2f"|format(stats.total_spent) }}</span>
+                <div class="stat-label">Gesamtausgaben</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">${{ "%.2f"|format(stats.pending_amount) }}</span>
+                <div class="stat-label">Ausstehend</div>
+            </div>
+        </div>
+
+        <!-- Käufe Liste -->
+        {% if purchases %}
+            {% for purchase in purchases %}
+            <div class="purchase-card">
+                <div class="purchase-header">
+                    <div>
+                        <h4 class="mb-1">{{ purchase.item_name }}</h4>
+                        <span class="item-type-badge type-{{ purchase.item_type.lower() }}">
+                            {{ purchase.item_type }}
+                        </span>
+                    </div>
+                    <div>
+                        {% if purchase.status == 'pending' %}
+                        <span class="status-pending pending-indicator">
+                            <i class="bi bi-hourglass-split"></i>
+                            Warten auf Mining
+                        </span>
+                        {% else %}
+                        <span class="status-confirmed">
+                            <i class="bi bi-check-circle"></i>
+                            Bestätigt
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="purchase-body">
+                    <div class="purchase-meta">
+                        <div class="meta-item">
+                            <div class="meta-label">Kaufdatum</div>
+                            <div class="meta-value">{{ purchase.purchase_date }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Preis</div>
+                            <div class="meta-value">${{ "%.2f"|format(purchase.purchase_amount) }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Verkäufer</div>
+                            <div class="meta-value">{{ format_address(purchase.seller) }}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Block</div>
+                            <div class="meta-value">
+                                {% if purchase.block_index == 'Pending' %}
+                                <span class="text-warning">{{ purchase.block_index }}</span>
+                                {% else %}
+                                <a href="/blockchain/block/{{ purchase.block_index }}" class="text-primary">#{{ purchase.block_index }}</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if purchase.original_metadata.description %}
+                    <div class="mb-3">
+                        <strong>Beschreibung:</strong> {{ purchase.original_metadata.description }}
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check me-1"></i>
+                                Transaktion: {{ purchase.purchase_tx_id[:16] }}...
+                            </small>
+                        </div>
+                        <div>
+                            {% if purchase.can_download %}
+                            <a href="/marketplace/download/{{ purchase.item_id }}" 
+                               class="download-btn">
+                                <i class="bi bi-download"></i>
+                                Download
+                            </a>
+                            {% else %}
+                            <button class="download-btn" disabled>
+                                <i class="bi bi-hourglass-split"></i>
+                                Warten auf Mining
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <!-- Keine Käufe -->
+        <div class="no-purchases">
+            <i class="bi bi-bag"></i>
+            <h3>Noch keine Käufe getätigt</h3>
+            <p>Du hast noch keine Datensätze oder Modelle gekauft.</p>
+            <a href="/marketplace" class="btn btn-primary">
+                <i class="bi bi-shop me-2"></i>
+                Zum Marketplace
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh für pending purchases
+    setInterval(checkPurchaseStatus, 30000); // Alle 30 Sekunden
+    
+    console.log('Meine Käufe Seite geladen');
+});
+
+function checkPurchaseStatus() {
+    fetch('/api/purchases/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.pending_purchases === 0) {
+                // Alle Transaktionen bestätigt - Seite neu laden
+                const pendingElements = document.querySelectorAll('.status-pending');
+                if (pendingElements.length > 0) {
+                    location.reload();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Status-Check Fehler:', error);
+        });
+}
+
+// Download button animations
+document.querySelectorAll('.download-btn:not(:disabled)').forEach(btn => {
+    btn.addEventListener('click', function() {
+        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Lädt...';
+        this.disabled = true;
+    });
+});
+</script>
+{% endblock %}
