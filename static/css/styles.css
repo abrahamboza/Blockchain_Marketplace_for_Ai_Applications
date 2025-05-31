@@ -195,7 +195,14 @@ a:hover {
     margin-bottom: 0.5rem;
     color: var(--gray-400);
 }
+.component-item.mining {
+    border-left-color: #f59e0b;
+}
 
+.component-item.mining .component-icon {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
 .footer-links {
     list-style: none;
     padding-left: 0;

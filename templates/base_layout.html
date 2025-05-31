@@ -69,13 +69,10 @@
                     </li>
                     {% if is_logged_in() %}
                     <li class="nav-item">
-                        <a class="nav-link" href="/training/dashboard" id="nav-training">ML Training</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="/marketplace/my-purchases" id="nav-my-purchases">Meine Käufe</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/admin" id="nav-admin">Admin</a>
+                        <a class="nav-link" href="/mine" id="nav-mining">Mining</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -139,9 +136,9 @@ datenbasierte Lernsysteme" gehört</p>
                     <h5>Komponenten</h5>
                     <ul class="footer-links">
                         <li><a href="/marketplace">Marktplatz</a></li>
-                        <li><a href="/training/dashboard">ML Training</a></li>
                         <li><a href="/upload-dataset">Daten hochladen</a></li>
-                        <li><a href="/blockchain">Blockchain</a></li>
+                        <li><a href="/blockchain">Blockchain Explorer</a></li>
+                        <li><a href="/mine">Mining</a></li>
                         {% if is_logged_in() %}
                         <li><a href="/marketplace/my-purchases">Meine Käufe</a></li>
                         {% endif %}
@@ -236,12 +233,9 @@ datenbasierte Lernsysteme" gehört</p>
             } else if (currentPath.startsWith('/blockchain')) {
                 const blockchainLink = document.getElementById('nav-blockchain');
                 if (blockchainLink) blockchainLink.classList.add('active');
-            } else if (currentPath.startsWith('/training')) {
-                const trainingLink = document.getElementById('nav-training');
-                if (trainingLink) trainingLink.classList.add('active');
-            } else if (currentPath.startsWith('/admin')) {
-                const adminLink = document.getElementById('nav-admin');
-                if (adminLink) adminLink.classList.add('active');
+            } else if (currentPath.startsWith('/mine')) {
+                const miningLink = document.getElementById('nav-mining');
+                if (miningLink) miningLink.classList.add('active');
             } else if (currentPath.startsWith('/upload')) {
                 const uploadLink = document.querySelector('.nav-link[href="/upload-dataset"]');
                 if (uploadLink) uploadLink.classList.add('active');
