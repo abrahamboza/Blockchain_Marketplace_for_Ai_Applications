@@ -47,7 +47,6 @@ class MarketplaceBlockchain(Blockchain):
         finally:
             session.close()
 
-    # Add or update the upload_data_with_file method
     def upload_data_with_file(self, owner_address, file_content, metadata, price):
         """Lädt Daten mit einer Datei hoch und verschlüsselt sie
 
@@ -114,6 +113,15 @@ class MarketplaceBlockchain(Blockchain):
             )
             session.add(encrypted_file)
             session.commit()
+
+            # NEUER CODE: Verschlüsselungsschlüssel speichern
+            try:
+                import key_manager
+                print(f"DEBUG: Speichere Schlüssel für {data_id}")
+                result = key_manager.save_key(metadata.get('name', 'Unknown Dataset'), data_id, key.decode())
+                print(f"DEBUG: Schlüssel gespeichert: {result}")
+            except Exception as e:
+                print(f"ERROR beim Speichern des Schlüssels: {e}")
 
             return data_id, key.decode()  # Schlüssel als String zurückgeben
         except Exception as e:
@@ -188,6 +196,15 @@ class MarketplaceBlockchain(Blockchain):
             )
             session.add(encrypted_file)
             session.commit()
+
+            # NEUER CODE: Verschlüsselungsschlüssel speichern
+            try:
+                import key_manager
+                print(f"DEBUG: Speichere Schlüssel für {model_id}")
+                result = key_manager.save_key(metadata.get('name', 'Unknown Model'), model_id, key.decode())
+                print(f"DEBUG: Schlüssel gespeichert: {result}")
+            except Exception as e:
+                print(f"ERROR beim Speichern des Schlüssels: {e}")
 
             return model_id, key.decode()  # Schlüssel als String zurückgeben
         except Exception as e:

@@ -13,5 +13,15 @@
         "username": "flo1",
         "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
         "blockchain_address": "39b45b5ad24548e4a86b490f5828470d"
+    },
+    "test1": {
+        "username": "test1",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "ddbedc4e6df948c2a322b788dc48bcd3"
+    },
+    "test2": {
+        "username": "test2",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "e10180e1fcf042fe8666d3651702867b"
     }
 }

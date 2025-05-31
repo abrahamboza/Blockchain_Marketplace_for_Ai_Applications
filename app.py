@@ -14,6 +14,8 @@ from marketplace import MarketplaceBlockchain
 from flask import send_file
 import io
 import json
+from database import User
+from database import DatabaseManager
 # Flask App Initialisierung
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'entwicklungsschluessel')
@@ -86,11 +88,13 @@ def utility_processor():
     def current_user():
         if 'username' in session:
             username = session['username']
-            users = load_users()
-            if username in users:
-                user_data = users[username].copy()
-                user_data.pop('password_hash', None)
-                return user_data
+            blockchain_address = session.get('blockchain_address')
+
+            if username and blockchain_address:
+                return {
+                    'username': username,
+                    'blockchain_address': blockchain_address
+                }
         return None
 
     def format_timestamp(timestamp):
@@ -119,24 +123,51 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """Login-Funktion mit Datenbank-Integration"""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
         remember_me = request.form.get('remember_me') == 'on'
 
+        if not username or not password:
+            flash('Bitte fülle alle Felder aus.', 'danger')
+            return render_template('login.html')
+
+        # Lade users.json für Login-Daten
         users = load_users()
 
-        if username in users and users[username]['password_hash'] == hash_password(password):
-            # Benutzer in der Session speichern
-            session['username'] = username
-            session['blockchain_address'] = users[username]['blockchain_address']
+        if username in users:
+            stored_password_hash = users[username]['password_hash']
+            input_password_hash = hash_password(password)
 
-            # Wenn "Angemeldet bleiben" aktiviert ist
-            if remember_me:
-                session.permanent = True
+            if stored_password_hash == input_password_hash:
+                blockchain_address = users[username]['blockchain_address']
 
-            flash(f'Willkommen zurück, {username}!', 'success')
-            return redirect(url_for('index'))
+                # Stelle sicher, dass User in der Datenbank existiert
+                session_db = blockchain.db_manager.get_session()
+                try:
+                    user = session_db.query(User).filter_by(address=blockchain_address).first()
+
+                    if not user:
+                        # User existiert nicht in DB → registriere ihn
+                        print(f"Registriere User {username} in Datenbank...")
+                        user = blockchain.register_user(blockchain_address)
+                        print(f"User registriert: {blockchain_address}")
+
+                    # Session setzen
+                    session['username'] = username
+                    session['blockchain_address'] = blockchain_address
+
+                    if remember_me:
+                        session.permanent = True
+
+                    flash(f'Willkommen zurück, {username}!', 'success')
+                    return redirect(url_for('index'))
+
+                finally:
+                    session_db.close()
+            else:
+                flash('Ungültiger Benutzername oder Passwort.', 'danger')
         else:
             flash('Ungültiger Benutzername oder Passwort.', 'danger')
 
@@ -145,6 +176,7 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """Register-Funktion mit Datenbank-Integration"""
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
@@ -158,27 +190,43 @@ def register():
             flash('Die Passwörter stimmen nicht überein.', 'danger')
             return render_template('register.html')
 
+        # Lade bestehende User
         users = load_users()
 
+        # Prüfe ob Username bereits existiert
         if username in users:
             flash('Dieser Benutzername ist bereits vergeben.', 'danger')
             return render_template('register.html')
 
-        # Neuen Benutzer erstellen
-        users[username] = {
-            "username": username,
-            "password_hash": hash_password(password),
-            "blockchain_address": str(uuid.uuid4()).replace('-', '')
-        }
+        try:
+            # Generiere neue Blockchain-Adresse
+            blockchain_address = str(uuid.uuid4()).replace('-', '')
+            password_hash = hash_password(password)
 
-        save_users(users)
+            # Speichere in users.json
+            users[username] = {
+                "username": username,
+                "password_hash": password_hash,
+                "blockchain_address": blockchain_address
+            }
+            save_users(users)
 
-        # Automatisch einloggen
-        session['username'] = username
-        session['blockchain_address'] = users[username]['blockchain_address']
+            # Registriere User in der Datenbank
+            user = blockchain.register_user(blockchain_address)
 
-        flash('Dein Konto wurde erfolgreich erstellt!', 'success')
-        return redirect(url_for('index'))
+            # Automatisch einloggen
+            session['username'] = username
+            session['blockchain_address'] = blockchain_address
+
+            flash('Dein Konto wurde erfolgreich erstellt!', 'success')
+            print(f"Neuer User registriert: {username} → {blockchain_address}")
+
+            return redirect(url_for('index'))
+
+        except Exception as e:
+            flash(f'Fehler bei der Registrierung: {str(e)}', 'danger')
+            print(f"Registrierungsfehler: {str(e)}")
+            return render_template('register.html')
 
     return render_template('register.html')
 
@@ -774,7 +822,7 @@ def marketplace_item_details(item_id):
 @app.route('/marketplace/purchase', methods=['POST'])
 @login_required
 def marketplace_purchase():
-    """Verarbeitet Käufe von Marketplace-Items"""
+    """Verarbeitet Käufe von Marketplace-Items - KORRIGIERT für Schlüssel-Übertragung"""
 
     try:
         item_id = request.form.get('item_id')
@@ -783,6 +831,8 @@ def marketplace_purchase():
         if not item_id:
             flash('Keine Item-ID angegeben.', 'danger')
             return redirect(url_for('marketplace'))
+
+        print(f"DEBUG Purchase: Käufer {buyer_address} kauft Item {item_id}")
 
         # Suche das Item
         found_item = None
@@ -803,10 +853,27 @@ def marketplace_purchase():
             flash('Du kannst deine eigenen Items nicht kaufen.', 'warning')
             return redirect(url_for('marketplace_item_details', item_id=item_id))
 
+        # NEU: Prüfe ob User bereits gekauft hat
+        already_purchased = check_download_permission(buyer_address, item_id)
+        if already_purchased:
+            flash('Du hast dieses Item bereits gekauft.', 'info')
+            return redirect(url_for('marketplace_item_details', item_id=item_id))
+
         # Erstelle Purchase-Transaktion
         item_type = found_item.get('type')
         item_price = found_item.get('price', 0)
 
+        print(f"DEBUG Purchase: Item-Typ: {item_type}, Preis: {item_price}")
+
+        # NEU: Lade Owner-Schlüssel BEVOR der Kauf abgeschlossen wird
+        owner_encryption_key = load_encryption_key(item_id, None)  # Owner-Schlüssel laden
+        if not owner_encryption_key:
+            flash('Verschlüsselungsschlüssel für dieses Item nicht verfügbar.', 'danger')
+            return redirect(url_for('marketplace_item_details', item_id=item_id))
+
+        print(f"DEBUG Purchase: Owner-Schlüssel gefunden: {owner_encryption_key[:20]}...")
+
+        # Erstelle Purchase-Transaktion
         if item_type == 'data_upload':
             transaction_id = blockchain.data_purchase_transaction(
                 buyer_address, item_id, item_price
@@ -819,13 +886,80 @@ def marketplace_purchase():
             flash('Ungültiger Item-Typ.', 'danger')
             return redirect(url_for('marketplace_item_details', item_id=item_id))
 
+        print(f"DEBUG Purchase: Transaktion erstellt: {transaction_id}")
+
+        # NEU: Speichere Schlüssel für den Käufer
+        try:
+            save_key_for_buyer(buyer_address, item_id, owner_encryption_key, found_item)
+            print(f"DEBUG Purchase: Schlüssel für Käufer {buyer_address} gespeichert")
+        except Exception as key_error:
+            print(f"ERROR Purchase: Schlüssel-Speicherung fehlgeschlagen: {key_error}")
+            # Kauf trotzdem durchführen, aber warnen
+            flash('Kauf erfolgreich, aber Schlüssel-Zugang könnte verzögert sein.', 'warning')
+
         flash(f'Kauf erfolgreich! Transaktion {transaction_id[:16]}... wurde erstellt und wartet auf Mining.',
               'success')
-        return redirect(url_for('marketplace_item_details', item_id=item_id))
+        flash('Du kannst das Item nach dem Mining herunterladen.', 'info')
+
+        return redirect(url_for('my_purchases'))
 
     except Exception as e:
+        print(f"ERROR Purchase: {str(e)}")
         flash(f'Fehler beim Kauf: {str(e)}', 'danger')
         return redirect(url_for('marketplace'))
+
+
+def save_key_for_buyer(buyer_address, item_id, encryption_key, original_item):
+    """Speichert den Verschlüsselungsschlüssel für den Käufer"""
+
+    print(f"DEBUG save_key_for_buyer: buyer={buyer_address}, item={item_id}")
+
+    import os
+    import json
+    from datetime import datetime
+
+    # Lade oder erstelle data_keys.json
+    keys_file = 'data_keys.json'
+    if os.path.exists(keys_file):
+        with open(keys_file, 'r') as f:
+            keys_data = json.load(f)
+    else:
+        keys_data = {"datasets": []}
+
+    # Bestimme den Namen des Items
+    item_name = 'Unknown Item'
+    if original_item:
+        metadata = original_item.get('metadata', {})
+        item_name = metadata.get('name', 'Unknown Item')
+
+    # Füge Eintrag für den Käufer hinzu (mit purchased_by-Flag)
+    buyer_key_entry = {
+        "name": item_name,
+        "data_id": item_id,
+        "encryption_key": encryption_key,
+        "upload_date": datetime.now().strftime('%Y-%m-%d'),
+        "purchased_by": buyer_address,  # WICHTIG: Markiere als gekauft
+        "purchase_date": datetime.now().strftime('%Y-%m-%d')
+    }
+
+    # Prüfe ob bereits vorhanden (vermeiden von Duplikaten)
+    existing_entry = None
+    for entry in keys_data["datasets"]:
+        if (entry.get("data_id") == item_id and
+                entry.get("purchased_by") == buyer_address):
+            existing_entry = entry
+            break
+
+    if not existing_entry:
+        keys_data["datasets"].append(buyer_key_entry)
+
+        # Speichere die aktualisierte Datei
+        with open(keys_file, 'w') as f:
+            json.dump(keys_data, f, indent=2)
+
+        print(f"Verschlüsselungsschlüssel für Käufer {buyer_address} gespeichert")
+    else:
+        print(f"Schlüssel für Käufer {buyer_address} bereits vorhanden")
 
 
 # User Dashboard Route
@@ -965,7 +1099,7 @@ def get_file_size_mb(file_path):
 @app.route('/upload-dataset', methods=['GET', 'POST'])
 @login_required
 def upload_dataset():
-    """Upload-Seite für Datasets und Modelle"""
+    """Upload-Seite für Datasets und Modelle mit korrigierter Verschlüsselung"""
 
     if request.method == 'GET':
         return render_template('upload_dataset.html')
@@ -1021,7 +1155,7 @@ def upload_dataset():
         unique_filename = f"{timestamp}_{filename}"
         file_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
-        # Datei speichern
+        # Datei temporär speichern
         file.save(file_path)
 
         # Dateigröße prüfen
@@ -1079,31 +1213,44 @@ def upload_dataset():
             flash('Keine gültige Blockchain-Adresse gefunden. Bitte logge dich erneut ein.', 'danger')
             return redirect(url_for('login'))
 
-        # Zu Blockchain hinzufügen
+        # WICHTIG: Datei lesen für Verschlüsselung
+        print(f"DEBUG Upload: Lese Datei {file_path} für Verschlüsselung...")
+        with open(file_path, 'rb') as f:
+            file_content = f.read()
+
+        print(f"DEBUG Upload: Datei gelesen, {len(file_content)} Bytes")
+
+        # Zu Blockchain hinzufügen MIT VERSCHLÜSSELUNG
         try:
             if upload_type == 'dataset':
-                # Füge Dataset-Transaktion zu pending transactions hinzu
-                data_id = blockchain.data_upload_transaction(
-                    owner_address, metadata, price
+                # KORRIGIERT: Verwende upload_data_with_file für automatische Verschlüsselung
+                print(f"DEBUG Upload: Verwende upload_data_with_file für Dataset...")
+                data_id, encryption_key = blockchain.upload_data_with_file(
+                    owner_address, file_content, metadata, price
                 )
                 upload_id = data_id
+                print(f"DEBUG Upload: Dataset hochgeladen - ID: {data_id}, Key: {encryption_key[:20]}...")
 
             else:  # model
-                # Füge Model-Transaktion zu pending transactions hinzu
-                model_id = blockchain.model_upload_transaction(
-                    owner_address, metadata, price
+                # KORRIGIERT: Verwende upload_model_with_file für automatische Verschlüsselung
+                print(f"DEBUG Upload: Verwende upload_model_with_file für Model...")
+                model_id, encryption_key = blockchain.upload_model_with_file(
+                    owner_address, file_content, metadata, price
                 )
                 upload_id = model_id
+                print(f"DEBUG Upload: Model hochgeladen - ID: {model_id}, Key: {encryption_key[:20]}...")
 
-            # Lokale Datei nach Upload löschen
+            # Jetzt erst lokale Datei löschen (nach erfolgreichem Upload)
             os.remove(file_path)
+            print(f"DEBUG Upload: Lokale Datei {file_path} gelöscht")
 
             # Erfolgsmeldung mit Hinweis auf Mining
             item_type = "Dataset" if upload_type == 'dataset' else "Modell"
             pending_count = len(blockchain.current_transactions)
 
-            flash(f'{item_type} "{name}" wurde erfolgreich zur Blockchain hinzugefügt!', 'success')
+            flash(f'{item_type} "{name}" wurde erfolgreich verschlüsselt und zur Blockchain hinzugefügt!', 'success')
             flash(f'Die Transaktion wartet jetzt auf Mining. Es sind {pending_count} Transaktionen ausstehend.', 'info')
+            flash(f'Verschlüsselungsschlüssel wurde sicher gespeichert.', 'info')
 
             # Weiterleitung zum Marketplace (Item ist noch nicht verfügbar bis gemined)
             return redirect(url_for('marketplace'))
@@ -1113,47 +1260,25 @@ def upload_dataset():
             if os.path.exists(file_path):
                 os.remove(file_path)
 
+            print(f"ERROR Upload: Blockchain-Fehler: {str(blockchain_error)}")
             flash(f'Fehler beim Hinzufügen zur Blockchain: {str(blockchain_error)}', 'danger')
             return redirect(url_for('upload_dataset'))
 
     except ValueError as e:
+        # Datei aufräumen bei Validierungsfehlern
+        if 'file_path' in locals() and os.path.exists(file_path):
+            os.remove(file_path)
         flash(f'Ungültige Eingabe: {str(e)}', 'danger')
         return redirect(url_for('upload_dataset'))
 
     except Exception as e:
+        # Datei aufräumen bei allgemeinen Fehlern
+        if 'file_path' in locals() and os.path.exists(file_path):
+            os.remove(file_path)
+        print(f"ERROR Upload: Allgemeiner Fehler: {str(e)}")
         flash(f'Upload-Fehler: {str(e)}', 'danger')
         return redirect(url_for('upload_dataset'))
 
-
-def save_encryption_key(item_id, encryption_key, item_name):
-    """Speichert Verschlüsselungsschlüssel sicher"""
-    try:
-        # Lade bestehende Schlüssel
-        keys_file = 'data_keys.json'
-        if os.path.exists(keys_file):
-            with open(keys_file, 'r') as f:
-                keys_data = json.load(f)
-        else:
-            keys_data = {"datasets": []}
-
-        # Füge neuen Schlüssel hinzu
-        key_entry = {
-            "name": item_name,
-            "data_id": item_id,
-            "encryption_key": encryption_key,
-            "upload_date": datetime.now().strftime('%Y-%m-%d')
-        }
-
-        keys_data["datasets"].append(key_entry)
-
-        # Speichere aktualisierte Schlüssel
-        with open(keys_file, 'w') as f:
-            json.dump(keys_data, f, indent=2)
-
-        print(f"Verschlüsselungsschlüssel für {item_name} gespeichert")
-
-    except Exception as e:
-        print(f"Warnung: Konnte Verschlüsselungsschlüssel nicht speichern: {e}")
 
 
 # API-Route für Upload-Status (optional für Ajax-Updates)
@@ -1450,19 +1575,23 @@ def find_original_item(item_id):
     return None
 
 # Download Route für gekaufte Items
+# Erweiterte Debug-Versionen der Download-Funktionen für app.py
+
+# Ersetze die download_item() Funktion in app.py mit dieser Version:
 @app.route('/marketplace/download/<item_id>')
 @login_required
 def download_item(item_id):
-    """Download für gekaufte Items mit korrigierter Schlüssel-Logik"""
+    """Download für gekaufte Items mit erweiterten Debug-Ausgaben"""
 
     try:
         user_address = session.get('blockchain_address')
 
-        print(f"DEBUG Download: User {user_address} möchte Item {item_id} downloaden")
+        print(f"\n=== DEBUG DOWNLOAD START ===")
+        print(f"User {user_address} möchte Item {item_id} downloaden")
 
         # 1. Prüfe Berechtigung
         has_permission = check_download_permission(user_address, item_id)
-        print(f"DEBUG Download: Berechtigung für {item_id}: {has_permission}")
+        print(f"Berechtigung für {item_id}: {has_permission}")
 
         if not has_permission:
             flash('Du hast keine Berechtigung zum Download dieses Items.', 'danger')
@@ -1471,32 +1600,42 @@ def download_item(item_id):
         # 2. Suche Original-Item
         original_item = find_original_item(item_id)
         if not original_item:
-            print(f"DEBUG Download: Original Item {item_id} nicht gefunden")
+            print(f"Original Item {item_id} nicht gefunden")
             flash('Item nicht gefunden.', 'danger')
             return redirect(url_for('my_purchases'))
 
-        print(f"DEBUG Download: Original Item gefunden: {original_item.get('name')}")
+        print(f"Original Item gefunden: {original_item.get('name')}")
 
-        # 3. Lade Verschlüsselungsschlüssel mit User-Adresse
+        # 3. Debug: Zeige alle verfügbaren Schlüssel BEVOR wir laden
+        print(f"\n=== VERFÜGBARE SCHLÜSSEL VOR LADEN ===")
+        show_available_keys()
+
+        # 4. Lade Verschlüsselungsschlüssel mit Debug-Output
+        print(f"\n=== SCHLÜSSEL-SUCHE ===")
+        print(f"Suche Schlüssel für item_id: {item_id}, user: {user_address}")
+
         encryption_key = load_encryption_key(item_id, user_address)
         if not encryption_key:
-            print(f"DEBUG Download: Kein Schlüssel für Item {item_id} und User {user_address} gefunden")
+            print(f"FEHLER: Kein Schlüssel für Item {item_id} und User {user_address} gefunden")
 
-            # Zeige verfügbare Schlüssel für Debug
-            show_available_keys()
+            # Versuche auch ohne User-Spezifikation (für Owner)
+            print(f"Versuche Owner-Schlüssel zu finden...")
+            encryption_key = load_encryption_key(item_id, None)
 
-            flash('Verschlüsselungsschlüssel nicht gefunden.', 'danger')
-            return redirect(url_for('my_purchases'))
+            if not encryption_key:
+                print(f"FEHLER: Auch kein Owner-Schlüssel gefunden")
+                flash('Verschlüsselungsschlüssel nicht gefunden.', 'danger')
+                return redirect(url_for('my_purchases'))
 
-        print(f"DEBUG Download: Schlüssel gefunden für {item_id}")
+        print(f"Schlüssel gefunden! Länge: {len(encryption_key) if encryption_key else 0}")
 
-        # 4. Lade und entschlüssele Datei
+        # 5. Lade und entschlüssele Datei
         try:
-            print(f"DEBUG Download: Versuche Datei zu entschlüsseln...")
+            print(f"Versuche Datei zu entschlüsseln...")
             decrypted_content = blockchain.get_data_file(user_address, item_id, encryption_key)
-            print(f"DEBUG Download: Entschlüsselung erfolgreich, {len(decrypted_content)} Bytes")
+            print(f"Entschlüsselung erfolgreich, {len(decrypted_content)} Bytes")
 
-            # 5. Bereite Download vor
+            # 6. Bereite Download vor
             metadata = original_item['metadata']
             filename = metadata.get('original_filename', f"{metadata.get('name', 'download')}.dat")
 
@@ -1505,7 +1644,8 @@ def download_item(item_id):
 
             content_type = get_content_type(filename)
 
-            print(f"DEBUG Download: Sende Datei {filename} ({content_type})")
+            print(f"Sende Datei {filename} ({content_type})")
+            print(f"=== DEBUG DOWNLOAD ENDE ===\n")
 
             return send_file(
                 file_stream,
@@ -1515,40 +1655,46 @@ def download_item(item_id):
             )
 
         except Exception as decrypt_error:
-            print(f"DEBUG Download: Entschlüsselungsfehler: {str(decrypt_error)}")
+            print(f"ENTSCHLÜSSELUNGSFEHLER: {str(decrypt_error)}")
             flash(f'Fehler beim Entschlüsseln der Datei: {str(decrypt_error)}', 'danger')
             return redirect(url_for('my_purchases'))
 
     except Exception as e:
-        print(f"ERROR in download_item: {str(e)}")
+        print(f"ALLGEMEINER FEHLER in download_item: {str(e)}")
         flash(f'Download-Fehler: {str(e)}', 'danger')
         return redirect(url_for('my_purchases'))
 
 
 def check_download_permission(user_address, item_id):
-    """Prüft Download-Berechtigung mit verbessertem Logging"""
+    """Prüft Download-Berechtigung mit ausführlichem Debug-Output"""
 
-    print(f"DEBUG Berechtigung: Prüfe für User {user_address}, Item {item_id}")
+    print(f"\n=== BERECHTIGUNGS-PRÜFUNG ===")
+    print(f"User: {user_address}, Item: {item_id}")
 
     # 1. Prüfe ob User der Owner ist
     original_item = find_original_item(item_id)
     if original_item and original_item.get('owner') == user_address:
-        print(f"DEBUG Berechtigung: User ist Owner von {item_id}")
+        print(f"✓ User ist OWNER von {item_id}")
         return True
 
+    print(f"✗ User ist NICHT Owner")
+
     # 2. Prüfe ob User das Item gekauft hat
+    print(f"Prüfe Käufe in der Blockchain...")
+
     purchase_found = False
-    for block in blockchain.chain:
-        for tx in block.transactions:
+    for block_idx, block in enumerate(blockchain.chain):
+        for tx_idx, tx in enumerate(block.transactions):
             if (tx.get('type') in ['data_purchase', 'model_purchase']
                     and tx.get('buyer') == user_address):
 
                 purchased_item_id = tx.get('data_id') or tx.get('model_id')
 
-                print(f"DEBUG Berechtigung: Gefundener Kauf - Item {purchased_item_id} von User {tx.get('buyer')}")
+                print(
+                    f"  Block {block_idx}, TX {tx_idx}: {tx.get('type')} von {tx.get('buyer')} -> Item {purchased_item_id}")
 
                 if purchased_item_id == item_id:
-                    print(f"DEBUG Berechtigung: MATCH! User hat {item_id} gekauft")
+                    print(f"✓ PURCHASE MATCH gefunden!")
                     purchase_found = True
                     break
 
@@ -1556,87 +1702,113 @@ def check_download_permission(user_address, item_id):
             break
 
     if not purchase_found:
-        print(f"DEBUG Berechtigung: KEIN Kauf von {item_id} durch {user_address} gefunden")
+        print(f"✗ KEIN Kauf von {item_id} durch {user_address} gefunden")
 
+    print(f"=== BERECHTIGUNG: {'JA' if purchase_found else 'NEIN'} ===\n")
     return purchase_found
 
 
 def load_encryption_key(item_id, user_address=None):
-    """Verbesserte Schlüssel-Lade-Funktion mit User-spezifischer Suche"""
+    """Verbesserte Schlüssel-Lade-Funktion mit ausführlichem Debug-Output"""
 
-    print(f"DEBUG Schlüssel: Suche Schlüssel für item_id: {item_id}, user: {user_address}")
+    print(f"load_encryption_key_debug: item_id={item_id}, user={user_address}")
 
     # Alle möglichen Schlüssel-Dateien durchsuchen
     key_files = ['data_keys.json', 'EncryptionKeys.json']
 
     for key_file in key_files:
+        print(f"Prüfe Datei: {key_file}")
+
         if os.path.exists(key_file):
             try:
-                print(f"DEBUG Schlüssel: Prüfe Datei {key_file}")
-
                 with open(key_file, 'r') as f:
                     keys_data = json.load(f)
 
                 datasets = keys_data.get('datasets', [])
-                print(f"DEBUG Schlüssel: {len(datasets)} Einträge in {key_file}")
+                print(f"  -> {len(datasets)} Einträge in {key_file}")
 
-                # Zuerst nach Käufer-spezifischem Eintrag suchen
+                # Debug: Zeige alle Einträge
+                for i, dataset in enumerate(datasets):
+                    stored_id = dataset.get('data_id')
+                    purchased_by = dataset.get('purchased_by')
+                    name = dataset.get('name', 'Unknown')
+                    print(f"    Eintrag {i}: data_id={stored_id}, purchased_by={purchased_by}, name={name}")
+
+                # Suche nach passendem Eintrag
+                print(f"  -> Suche nach Matches...")
+
+                # 1. Zuerst nach Käufer-spezifischem Eintrag suchen
                 if user_address:
+                    print(f"    Suche Käufer-Eintrag für user {user_address}...")
                     for i, dataset in enumerate(datasets):
                         stored_id = dataset.get('data_id')
                         purchased_by = dataset.get('purchased_by')
 
-                        print(f"DEBUG Schlüssel: Eintrag {i}: data_id = {stored_id}, purchased_by = {purchased_by}")
-
                         if stored_id == item_id and purchased_by == user_address:
                             encryption_key = dataset.get('encryption_key')
-                            print(f"DEBUG Schlüssel: KÄUFER-MATCH! Schlüssel gefunden in {key_file}")
+                            print(
+                                f"    KÄUFER-MATCH! Eintrag {i}, Schlüssel: {encryption_key[:20]}..." if encryption_key else "None")
                             return encryption_key
 
-                # Dann nach Owner-Eintrag suchen (ohne purchased_by)
+                # 2. Dann nach Owner-Eintrag suchen (ohne purchased_by)
+                print(f"    Suche Owner-Eintrag...")
                 for i, dataset in enumerate(datasets):
                     stored_id = dataset.get('data_id')
                     purchased_by = dataset.get('purchased_by')
 
                     if stored_id == item_id and not purchased_by:
                         encryption_key = dataset.get('encryption_key')
-                        print(f"DEBUG Schlüssel: OWNER-MATCH! Schlüssel gefunden in {key_file}")
+                        print(
+                            f"    OWNER-MATCH! Eintrag {i}, Schlüssel: {encryption_key[:20]}..." if encryption_key else "None")
                         return encryption_key
 
-            except Exception as e:
-                print(f"DEBUG Schlüssel: Fehler beim Lesen von {key_file}: {e}")
+                print(f"  -> Keine Matches in {key_file}")
 
-    print(f"DEBUG Schlüssel: KEIN Schlüssel für {item_id} und User {user_address} gefunden!")
+            except Exception as e:
+                print(f"  -> FEHLER beim Lesen von {key_file}: {e}")
+        else:
+            print(f"  -> {key_file} existiert nicht")
+
+    print(f"KEIN Schlüssel für {item_id} und User {user_address} gefunden!")
     return None
 
 
 def show_available_keys():
-    """Debug-Funktion: Zeigt alle verfügbaren Schlüssel"""
+    """Debug-Funktion: Zeigt alle verfügbaren Schlüssel detailliert"""
 
-    print("DEBUG: === VERFÜGBARE SCHLÜSSEL ===")
+    print("=== ALLE VERFÜGBAREN SCHLÜSSEL ===")
 
     key_files = ['data_keys.json', 'EncryptionKeys.json']
 
     for key_file in key_files:
+        print(f"\nDatei: {key_file}")
+
         if os.path.exists(key_file):
             try:
                 with open(key_file, 'r') as f:
                     keys_data = json.load(f)
 
                 datasets = keys_data.get('datasets', [])
-                print(f"DEBUG: {key_file} enthält {len(datasets)} Schlüssel:")
+                print(f"  Anzahl Einträge: {len(datasets)}")
 
-                for dataset in datasets:
-                    data_id = dataset.get('data_id')
-                    name = dataset.get('name', 'Unknown')
-                    print(f"  - ID: {data_id}, Name: {name}")
+                for i, dataset in enumerate(datasets):
+                    data_id = dataset.get('data_id', 'NO_ID')
+                    name = dataset.get('name', 'NO_NAME')
+                    purchased_by = dataset.get('purchased_by', 'NONE')
+                    has_key = 'YES' if dataset.get('encryption_key') else 'NO'
+
+                    print(f"  [{i}] ID: {data_id}")
+                    print(f"      Name: {name}")
+                    print(f"      Purchased_by: {purchased_by}")
+                    print(f"      Has_key: {has_key}")
+                    print(f"      ---")
 
             except Exception as e:
-                print(f"DEBUG: Fehler beim Lesen von {key_file}: {e}")
+                print(f"  FEHLER beim Lesen: {e}")
         else:
-            print(f"DEBUG: {key_file} existiert nicht")
+            print(f"  EXISTIERT NICHT")
 
-    print("DEBUG: === ENDE SCHLÜSSEL-LISTE ===")
+    print("=== ENDE SCHLÜSSEL-LISTE ===\n")
 
 def get_content_type(filename):
     """Bestimmt Content-Type basierend auf Dateiendung"""
