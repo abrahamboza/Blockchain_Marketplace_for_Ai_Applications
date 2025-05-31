@@ -216,6 +216,7 @@ class MarketplaceBlockchain(Blockchain):
     def get_model_file(self, user_address, model_id, encryption_key):
         """Gibt die entschlüsselte Modelldatei zurück, wenn der Benutzer Zugriff hat.
         Holt den Inhalt aus IPFS statt direkt aus der Datenbank.
+        KORRIGIERT: Prüft Blockchain direkt für Purchase-Berechtigung.
 
         Args:
             user_address: Adresse des Benutzers
@@ -227,24 +228,90 @@ class MarketplaceBlockchain(Blockchain):
         """
         session = self.db_manager.get_session()
         try:
+            print(f"\n=== GET_MODEL_FILE DEBUG ===")
+            print(f"User: {user_address}, Model ID: {model_id}")
+
             # Benutzer finden
             user = session.query(User).filter_by(address=user_address).first()
             if not user:
+                print(f"❌ Benutzer mit Adresse {user_address} nicht in Datenbank gefunden")
                 raise ValueError(f"Benutzer mit Adresse {user_address} nicht gefunden")
+
+            print(f"✅ User gefunden: ID {user.id}")
 
             # Modell finden
             model_entry = session.query(ModelEntry).filter_by(model_id=model_id).first()
             if not model_entry:
+                print(f"❌ ModelEntry mit ID {model_id} nicht gefunden")
                 raise ValueError(f"Modell mit ID {model_id} nicht gefunden")
 
-            # Überprüfen, ob der Benutzer Zugriff hat
-            if model_entry.owner_id != user.id and user not in model_entry.purchased_by:
+            print(f"✅ ModelEntry gefunden: ID {model_entry.id}, Owner ID: {model_entry.owner_id}")
+
+            # NEUE LOGIK: Überprüfen der Zugriffsberechtigung
+            has_access = False
+            access_reason = ""
+
+            # 1. Prüfe ob User der Owner ist
+            if model_entry.owner_id == user.id:
+                has_access = True
+                access_reason = "User ist Owner"
+                print(f"✅ {access_reason}")
+            else:
+                print(f"⚠️ User ist nicht Owner (Owner ID: {model_entry.owner_id})")
+
+                # 2. Prüfe Blockchain direkt nach Purchase-Transaktionen
+                print(f"🔍 Suche in Blockchain nach Purchase-Transaktionen...")
+
+                purchase_found = False
+                for block_idx, block in enumerate(self.chain):
+                    for tx_idx, tx in enumerate(block.transactions):
+                        if (tx.get('type') in ['data_purchase', 'model_purchase']
+                                and tx.get('buyer') == user_address):
+
+                            purchased_item_id = tx.get('data_id') or tx.get('model_id')
+
+                            if purchased_item_id == model_id:
+                                purchase_found = True
+                                access_reason = f"Purchase gefunden in Block {block_idx}, TX {tx_idx}"
+                                print(f"✅ {access_reason}")
+                                break
+
+                    if purchase_found:
+                        break
+
+                if purchase_found:
+                    has_access = True
+                else:
+                    print(f"❌ Keine Purchase-Transaktion gefunden")
+
+                    # 3. Fallback: Prüfe auch ausstehende Transaktionen
+                    print(f"🔍 Prüfe ausstehende Transaktionen...")
+                    for tx in self.current_transactions:
+                        if (tx.get('type') in ['data_purchase', 'model_purchase']
+                                and tx.get('buyer') == user_address):
+
+                            purchased_item_id = tx.get('data_id') or tx.get('model_id')
+
+                            if purchased_item_id == model_id:
+                                has_access = True
+                                access_reason = "Purchase in ausstehenden Transaktionen gefunden"
+                                print(f"✅ {access_reason}")
+                                break
+
+            # Finale Zugriffsprüfung
+            if not has_access:
+                print(f"❌ ZUGRIFF VERWEIGERT: Kein Zugriff auf Modell {model_id}")
                 raise ValueError("Kein Zugriff auf dieses Modell")
+
+            print(f"✅ ZUGRIFF GEWÄHRT: {access_reason}")
 
             # Verschlüsselte Datei holen
             encrypted_file = model_entry.encrypted_file
             if not encrypted_file:
+                print(f"❌ Keine verschlüsselte Datei gefunden")
                 raise ValueError("Keine Datei für dieses Modell gefunden")
+
+            print(f"✅ Verschlüsselte Datei gefunden")
 
             # Get the IPFS CID from metadata or the encrypted_file record
             ipfs_cid = None
@@ -252,29 +319,43 @@ class MarketplaceBlockchain(Blockchain):
             ipfs_cid = metadata.get("ipfs_cid") or encrypted_file.ipfs_cid
 
             if not ipfs_cid:
-                # Fallback to direct content if no IPFS CID (for backward compatibility)
+                # Fallback zu direktem Inhalt falls kein IPFS CID (für Rückwärtskompatibilität)
                 if encrypted_file.encrypted_content:
+                    print(f"⚠️ Verwende direkten DB-Inhalt (kein IPFS)")
                     try:
                         key = encryption_key.encode() if isinstance(encryption_key, str) else encryption_key
                         decrypted_content = decrypt_file(encrypted_file.encrypted_content, key)
+                        print(f"✅ Direkte Entschlüsselung erfolgreich")
                         return decrypted_content
                     except Exception as e:
+                        print(f"❌ Direkte Entschlüsselung fehlgeschlagen: {str(e)}")
                         raise ValueError(f"Entschlüsselung fehlgeschlagen: {str(e)}")
                 raise ValueError("Keine IPFS-Referenz oder direkter Inhalt für dieses Modell gefunden")
+
+            print(f"✅ IPFS CID gefunden: {ipfs_cid}")
 
             # Retrieve encrypted content from IPFS
             encrypted_content = self.ipfs.get(ipfs_cid)
             if not encrypted_content:
+                print(f"❌ Inhalt konnte nicht aus IPFS abgerufen werden")
                 raise ValueError("Inhalt konnte nicht aus IPFS abgerufen werden")
+
+            print(f"✅ Inhalt aus IPFS abgerufen: {len(encrypted_content)} bytes")
 
             # Datei entschlüsseln
             try:
                 key = encryption_key.encode() if isinstance(encryption_key, str) else encryption_key
                 decrypted_content = decrypt_file(encrypted_content, key)
+                print(f"✅ Entschlüsselung erfolgreich: {len(decrypted_content)} bytes")
+                print(f"=== GET_MODEL_FILE DEBUG ENDE ===\n")
                 return decrypted_content
             except Exception as e:
+                print(f"❌ Entschlüsselung fehlgeschlagen: {str(e)}")
                 raise ValueError(f"Entschlüsselung fehlgeschlagen: {str(e)}")
 
+        except Exception as e:
+            print(f"❌ Allgemeiner Fehler in get_model_file: {str(e)}")
+            raise e
         finally:
             session.close()
 
@@ -452,10 +533,10 @@ class MarketplaceBlockchain(Blockchain):
 
             print(f"Verschlüsselungsschlüssel für Käufer {buyer_address} gespeichert")
 
-    # Update the get_data_file method to use IPFS
     def get_data_file(self, user_address, data_id, encryption_key):
         """Gibt die entschlüsselte Datei zurück, wenn der Benutzer Zugriff hat.
         Holt den Inhalt aus IPFS statt direkt aus der Datenbank.
+        KORRIGIERT: Prüft Blockchain direkt für Purchase-Berechtigung.
 
         Args:
             user_address: Adresse des Benutzers
@@ -467,24 +548,90 @@ class MarketplaceBlockchain(Blockchain):
         """
         session = self.db_manager.get_session()
         try:
+            print(f"\n=== GET_DATA_FILE DEBUG ===")
+            print(f"User: {user_address}, Data ID: {data_id}")
+
             # Benutzer finden
             user = session.query(User).filter_by(address=user_address).first()
             if not user:
+                print(f"❌ Benutzer mit Adresse {user_address} nicht in Datenbank gefunden")
                 raise ValueError(f"Benutzer mit Adresse {user_address} nicht gefunden")
+
+            print(f"✅ User gefunden: ID {user.id}")
 
             # Daten finden
             data_entry = session.query(DataEntry).filter_by(data_id=data_id).first()
             if not data_entry:
+                print(f"❌ DataEntry mit ID {data_id} nicht gefunden")
                 raise ValueError(f"Daten mit ID {data_id} nicht gefunden")
 
-            # Überprüfen, ob der Benutzer Zugriff hat
-            if data_entry.owner_id != user.id and user not in data_entry.purchased_by:
+            print(f"✅ DataEntry gefunden: ID {data_entry.id}, Owner ID: {data_entry.owner_id}")
+
+            # NEUE LOGIK: Überprüfen der Zugriffsberechtigung
+            has_access = False
+            access_reason = ""
+
+            # 1. Prüfe ob User der Owner ist
+            if data_entry.owner_id == user.id:
+                has_access = True
+                access_reason = "User ist Owner"
+                print(f"✅ {access_reason}")
+            else:
+                print(f"⚠️ User ist nicht Owner (Owner ID: {data_entry.owner_id})")
+
+                # 2. Prüfe Blockchain direkt nach Purchase-Transaktionen
+                print(f"🔍 Suche in Blockchain nach Purchase-Transaktionen...")
+
+                purchase_found = False
+                for block_idx, block in enumerate(self.chain):
+                    for tx_idx, tx in enumerate(block.transactions):
+                        if (tx.get('type') in ['data_purchase', 'model_purchase']
+                                and tx.get('buyer') == user_address):
+
+                            purchased_item_id = tx.get('data_id') or tx.get('model_id')
+
+                            if purchased_item_id == data_id:
+                                purchase_found = True
+                                access_reason = f"Purchase gefunden in Block {block_idx}, TX {tx_idx}"
+                                print(f"✅ {access_reason}")
+                                break
+
+                    if purchase_found:
+                        break
+
+                if purchase_found:
+                    has_access = True
+                else:
+                    print(f"❌ Keine Purchase-Transaktion gefunden")
+
+                    # 3. Fallback: Prüfe auch ausstehende Transaktionen
+                    print(f"🔍 Prüfe ausstehende Transaktionen...")
+                    for tx in self.current_transactions:
+                        if (tx.get('type') in ['data_purchase', 'model_purchase']
+                                and tx.get('buyer') == user_address):
+
+                            purchased_item_id = tx.get('data_id') or tx.get('model_id')
+
+                            if purchased_item_id == data_id:
+                                has_access = True
+                                access_reason = "Purchase in ausstehenden Transaktionen gefunden"
+                                print(f"✅ {access_reason}")
+                                break
+
+            # Finale Zugriffsprüfung
+            if not has_access:
+                print(f"❌ ZUGRIFF VERWEIGERT: Kein Zugriff auf Daten {data_id}")
                 raise ValueError("Kein Zugriff auf diese Daten")
+
+            print(f"✅ ZUGRIFF GEWÄHRT: {access_reason}")
 
             # Verschlüsselte Datei holen
             encrypted_file = data_entry.encrypted_file
             if not encrypted_file:
+                print(f"❌ Keine verschlüsselte Datei gefunden")
                 raise ValueError("Keine Datei für diese Daten gefunden")
+
+            print(f"✅ Verschlüsselte Datei gefunden")
 
             # Get the IPFS CID from metadata or the encrypted_file record
             ipfs_cid = None
@@ -492,21 +639,43 @@ class MarketplaceBlockchain(Blockchain):
             ipfs_cid = metadata.get("ipfs_cid") or encrypted_file.ipfs_cid
 
             if not ipfs_cid:
-                raise ValueError("Keine IPFS-Referenz für diese Daten gefunden")
+                # Fallback zu direktem Inhalt falls kein IPFS CID (für Rückwärtskompatibilität)
+                if encrypted_file.encrypted_content:
+                    print(f"⚠️ Verwende direkten DB-Inhalt (kein IPFS)")
+                    try:
+                        key = encryption_key.encode() if isinstance(encryption_key, str) else encryption_key
+                        decrypted_content = decrypt_file(encrypted_file.encrypted_content, key)
+                        print(f"✅ Direkte Entschlüsselung erfolgreich")
+                        return decrypted_content
+                    except Exception as e:
+                        print(f"❌ Direkte Entschlüsselung fehlgeschlagen: {str(e)}")
+                        raise ValueError(f"Entschlüsselung fehlgeschlagen: {str(e)}")
+                raise ValueError("Keine IPFS-Referenz oder direkter Inhalt für diese Daten gefunden")
+
+            print(f"✅ IPFS CID gefunden: {ipfs_cid}")
 
             # Retrieve encrypted content from IPFS
             encrypted_content = self.ipfs.get(ipfs_cid)
             if not encrypted_content:
+                print(f"❌ Inhalt konnte nicht aus IPFS abgerufen werden")
                 raise ValueError("Inhalt konnte nicht aus IPFS abgerufen werden")
+
+            print(f"✅ Inhalt aus IPFS abgerufen: {len(encrypted_content)} bytes")
 
             # Datei entschlüsseln
             try:
                 key = encryption_key.encode() if isinstance(encryption_key, str) else encryption_key
                 decrypted_content = decrypt_file(encrypted_content, key)
+                print(f"✅ Entschlüsselung erfolgreich: {len(decrypted_content)} bytes")
+                print(f"=== GET_DATA_FILE DEBUG ENDE ===\n")
                 return decrypted_content
             except Exception as e:
+                print(f"❌ Entschlüsselung fehlgeschlagen: {str(e)}")
                 raise ValueError(f"Entschlüsselung fehlgeschlagen: {str(e)}")
 
+        except Exception as e:
+            print(f"❌ Allgemeiner Fehler in get_data_file: {str(e)}")
+            raise e
         finally:
             session.close()
 

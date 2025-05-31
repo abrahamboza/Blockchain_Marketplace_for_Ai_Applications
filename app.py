@@ -1629,13 +1629,17 @@ def download_item(item_id):
 
         print(f"Schlüssel gefunden! Länge: {len(encryption_key) if encryption_key else 0}")
 
-        # 5. Lade und entschlüssele Datei
+        # 5. Debug der Datenbank-Zugriffsprüfung
+        print(f"\n=== DATENBANK-ZUGRIFF DEBUG ===")
+        debug_database_access(user_address, item_id)
+
+        # 6. Lade und entschlüssele Datei
         try:
             print(f"Versuche Datei zu entschlüsseln...")
             decrypted_content = blockchain.get_data_file(user_address, item_id, encryption_key)
             print(f"Entschlüsselung erfolgreich, {len(decrypted_content)} Bytes")
 
-            # 6. Bereite Download vor
+            # 7. Bereite Download vor
             metadata = original_item['metadata']
             filename = metadata.get('original_filename', f"{metadata.get('name', 'download')}.dat")
 
@@ -1664,6 +1668,42 @@ def download_item(item_id):
         flash(f'Download-Fehler: {str(e)}', 'danger')
         return redirect(url_for('my_purchases'))
 
+
+def debug_database_access(user_address, item_id):
+    """Debug-Funktion für Datenbank-Zugriff"""
+
+    print(f"=== DATENBANK DEBUG ===")
+
+    session_db = blockchain.db_manager.get_session()
+    try:
+        # Prüfe User in Datenbank
+        from database import User, DataEntry
+        user = session_db.query(User).filter_by(address=user_address).first()
+        print(f"User in DB gefunden: {user is not None}")
+        if user:
+            print(f"User ID: {user.id}")
+
+        # Prüfe DataEntry
+        data_entry = session_db.query(DataEntry).filter_by(data_id=item_id).first()
+        print(f"DataEntry gefunden: {data_entry is not None}")
+        if data_entry:
+            print(f"DataEntry ID: {data_entry.id}, Owner ID: {data_entry.owner_id}")
+            print(f"Purchased_by count: {len(data_entry.purchased_by)}")
+
+            if user:
+                is_in_purchased_by = user in data_entry.purchased_by
+                print(f"User ist in purchased_by: {is_in_purchased_by}")
+
+                # Zeige alle Käufer
+                for buyer in data_entry.purchased_by:
+                    print(f"  Käufer: {buyer.address}")
+
+    except Exception as e:
+        print(f"Datenbank-Debug Fehler: {e}")
+    finally:
+        session_db.close()
+
+    print(f"=== DATENBANK DEBUG ENDE ===\n")
 
 def check_download_permission(user_address, item_id):
     """Prüft Download-Berechtigung mit ausführlichem Debug-Output"""
