@@ -441,9 +441,14 @@ def block_details(block_index):
 
         # Mining-Details berechnen
         if block_index > 0:
-            previous_block = blockchain.chain[block_index - 1]
-            mining_time = block.timestamp - previous_block.timestamp
-            block_details['mining_time'] = f"{mining_time:.2f} seconds"
+            # KORRIGIERT: Verwende die gespeicherte Mining-Zeit aus dem Block
+            if hasattr(block, 'mining_time') and block.mining_time > 0:
+                block_details['mining_time'] = f"{block.mining_time:.2f} seconds"
+            else:
+                # Fallback für alte Blöcke ohne mining_time
+                previous_block = blockchain.chain[block_index - 1]
+                time_since_previous = block.timestamp - previous_block.timestamp
+                block_details['mining_time'] = f"{time_since_previous:.2f} seconds (estimated)"
         else:
             block_details['mining_time'] = "Genesis Block"
 
@@ -1444,8 +1449,15 @@ def start_mining():
         # Mining-Parameter aus Request
         difficulty = int(request.json.get('difficulty', 4))
 
+        print(f"\n=== API MINING START DEBUG ===")
+        print(f"Difficulty: {difficulty}")
+
         # Verwende die echte mine_block Methode
         new_block, mining_time = blockchain.mine_block(difficulty)
+
+        print(f"API: Zurückgegebene Mining-Zeit: {mining_time:.6f}")
+        print(f"API: Block Mining-Zeit Attribut: {new_block.mining_time:.6f}")
+        print(f"=== API MINING DEBUG ENDE ===\n")
 
         return jsonify({
             'success': True,
@@ -1453,11 +1465,13 @@ def start_mining():
             'proof': new_block.proof,
             'hash': new_block.hash,
             'mining_time': mining_time,
+            'block_mining_time': new_block.mining_time,  # NEW: Also return block's mining time
             'transactions_mined': len(new_block.transactions),
             'difficulty': difficulty
         })
 
     except Exception as e:
+        print(f"ERROR in start_mining API: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 ###########################################

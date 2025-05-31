@@ -499,10 +499,7 @@
 {% block scripts %}
 <script>
 let isMining = false;
-let miningInterval = null;
-let currentAttempt = 0;
-let startTime = null;
-let hashRate = 0;
+let miningStartTime = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Difficulty slider
@@ -526,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
             el.textContent = '0'.repeat(parseInt(newDifficulty));
         });
 
-        // FIX: Update the difficulty in the mining stats (top left box)
+        // Update the difficulty in the mining stats
         const difficultyStatValue = document.querySelector('.mining-stats .stat-box:nth-child(2) .stat-value');
         if (difficultyStatValue) {
             difficultyStatValue.textContent = newDifficulty;
@@ -540,216 +537,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function startMining() {
     if (isMining) {
-        stopMining();
-        return;
+        return; // Prevent double-clicking
     }
 
     // Get current difficulty from slider
     const difficultySlider = document.getElementById('difficultySlider');
     const currentDifficulty = parseInt(difficultySlider.value);
 
-    console.log('Starting mining with difficulty:', currentDifficulty);
+    console.log('Starting REAL mining with difficulty:', currentDifficulty);
 
     isMining = true;
-    currentAttempt = 0;
-    startTime = Date.now();
+    miningStartTime = Date.now();
 
     // UI Updates
     const mineButton = document.getElementById('mineButton');
     const statusIndicator = document.getElementById('statusIndicator');
     const statusText = document.getElementById('statusText');
     const miningProgress = document.getElementById('miningProgress');
+    const hashDisplay = document.getElementById('hashDisplay');
 
-    mineButton.innerHTML = '<i class="bi bi-stop-circle me-2"></i>Mining stoppen';
-    mineButton.classList.remove('mine-button');
-    mineButton.classList.add('btn', 'btn-danger', 'w-100');
+    mineButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Mining läuft...';
+    mineButton.disabled = true;
 
     statusIndicator.classList.add('mining');
-    statusText.textContent = 'Mining läuft...';
+    statusText.textContent = 'Echtes Mining läuft...';
     miningProgress.style.display = 'block';
 
-    addLogEntry('Mining gestartet...', 'success');
+    // Show mining status
+    hashDisplay.textContent = 'Mining läuft... Bitte warten...';
+
+    addLogEntry('Echtes Mining gestartet...', 'success');
     addLogEntry(`Schwierigkeit: ${currentDifficulty} führende Nullen`);
+    addLogEntry('Suche nach gültigem Proof-of-Work...');
 
-    // Start mining simulation
-    simulateMining();
+    // Start REAL mining immediately
+    startRealMining(currentDifficulty);
 }
 
-function stopMining() {
-    isMining = false;
-    if (miningInterval) {
-        clearInterval(miningInterval);
-        miningInterval = null;
-    }
+function startRealMining(difficulty) {
+    console.log('=== ECHTES MINING STARTET ===');
+    console.log('Difficulty:', difficulty);
+    console.log('Zeit vor echtem Mining:', new Date().toLocaleTimeString());
 
-    // UI Updates
-    const mineButton = document.getElementById('mineButton');
-    const statusIndicator = document.getElementById('statusIndicator');
-    const statusText = document.getElementById('statusText');
-    const miningProgress = document.getElementById('miningProgress');
-
-    mineButton.innerHTML = '<i class="bi bi-play-circle me-2"></i>Mining starten';
-    mineButton.classList.remove('btn', 'btn-danger');
-    mineButton.classList.add('mine-button');
-
-    statusIndicator.classList.remove('mining');
-    statusText.textContent = 'Mining gestoppt';
-    miningProgress.style.display = 'none';
-
-    addLogEntry('Mining gestoppt', 'error');
-}
-
-function simulateMining() {
-    const difficultySlider = document.getElementById('difficultySlider');
-    const difficulty = parseInt(difficultySlider.value);
-    const lastProof = {{ mining_info.last_proof }};
-
-    console.log('Simulating mining with difficulty:', difficulty, 'lastProof:', lastProof);
-
-    miningInterval = setInterval(() => {
-        if (!isMining) return;
-
-        currentAttempt++;
-
-        // Simulate hash calculation with correct parameters
-        fetch('/api/mine/simulate', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                last_proof: lastProof,
-                current_attempt: currentAttempt,
-                difficulty: difficulty
-            })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (!isMining) return;
-
-            console.log('Mining attempt:', currentAttempt, 'Valid:', data.is_valid, 'Leading zeros:', data.leading_zeros);
-
-            updateMiningDisplay(data, difficulty);
-
-            if (data.is_valid) {
-                // Found valid hash!
-                console.log('Valid hash found!', data);
-                onMiningSuccess(data);
-            }
-        })
-        .catch(error => {
-            console.error('Mining simulation error:', error);
-            addLogEntry(`Fehler bei Mining-Simulation: ${error.message}`, 'error');
-
-            // Stop mining on persistent errors
-            if (currentAttempt > 10) {
-                addLogEntry('Zu viele Fehler - Mining gestoppt', 'error');
-                stopMining();
-            }
-        });
-
-        // Update stats
-        updateMiningStats();
-
-        // Safety check - stop if too many attempts without success
-        if (currentAttempt > 100000) {
-            addLogEntry('Maximum attempts reached - stopping', 'error');
-            stopMining();
+    // Update progress periodically while mining
+    const progressInterval = setInterval(() => {
+        if (!isMining) {
+            clearInterval(progressInterval);
+            return;
         }
 
-    }, 50); // Faster attempts - 20 per second
-}
-
-function updateMiningDisplay(data, difficulty) {
-    const hashDisplay = document.getElementById('hashDisplay');
-    const currentProof = document.getElementById('currentProof');
-    const attemptCounter = document.getElementById('attemptCounter');
-    const leadingZerosCount = document.getElementById('leadingZerosCount');
-    const hashProgress = document.getElementById('hashProgress');
-
-    // Update hash display with highlighting
-    let hashHtml = data.hash;
-    if (data.leading_zeros > 0) {
-        const leadingPart = data.hash.substring(0, data.leading_zeros);
-        const restPart = data.hash.substring(data.leading_zeros);
-        hashHtml = `<span class="leading-zeros">${leadingPart}</span>${restPart}`;
-    }
-
-    hashDisplay.innerHTML = hashHtml + `<div class="attempt-counter">Versuch #${data.attempt}</div>`;
-
-    // Update other elements
-    if (currentProof) currentProof.textContent = data.attempt;
-    if (attemptCounter) attemptCounter.textContent = `Versuch #${data.attempt}`;
-    if (leadingZerosCount) leadingZerosCount.textContent = data.leading_zeros;
-
-    // Update progress based on leading zeros found
-    if (hashProgress) {
-        const progress = Math.min((data.leading_zeros / difficulty) * 100, 99);
-        hashProgress.style.width = progress + '%';
-    }
-
-    // Add log entries for progress
-    if (data.leading_zeros > 0 && data.leading_zeros < difficulty) {
-        addLogEntry(`${data.leading_zeros}/${difficulty} führende Nullen gefunden! Hash: ${data.hash.substring(0, 16)}...`);
-    }
-}
-
-function updateMiningStats() {
-    const attemptsCount = document.getElementById('attemptsCount');
-    const hashRateElement = document.getElementById('hashRate');
-    const estimatedTime = document.getElementById('estimatedTime');
-    const progressPercent = document.getElementById('progressPercent');
-
-    if (attemptsCount) attemptsCount.textContent = currentAttempt.toLocaleString();
-
-    // Calculate hash rate
-    if (startTime) {
-        const elapsed = (Date.now() - startTime) / 1000;
-        const rate = Math.round(currentAttempt / elapsed);
-        if (hashRateElement) hashRateElement.textContent = rate.toLocaleString();
-
-        // Estimate time (very rough)
-        const difficulty = parseInt(document.getElementById('difficultySlider').value);
-        const expectedAttempts = Math.pow(16, difficulty);
-        const estimatedSeconds = (expectedAttempts - currentAttempt) / rate;
-
-        if (estimatedTime) {
-            if (estimatedSeconds < 60) {
-                estimatedTime.textContent = `${Math.max(1, Math.round(estimatedSeconds))}s`;
-            } else if (estimatedSeconds < 3600) {
-                estimatedTime.textContent = `${Math.round(estimatedSeconds / 60)}m`;
-            } else {
-                estimatedTime.textContent = `${Math.round(estimatedSeconds / 3600)}h`;
-            }
-        }
-    }
-
-    // Update progress
-    const progress = Math.min(currentAttempt / 1000, 1) * 100;
-    const progressFill = document.getElementById('progressFill');
-    if (progressFill) progressFill.style.width = progress + '%';
-    if (progressPercent) progressPercent.textContent = Math.round(progress) + '%';
-}
-
-function onMiningSuccess(data) {
-    addLogEntry(`🎉 BLOCK GEFUNDEN! Hash: ${data.hash}`, 'success');
-    addLogEntry(`Proof: ${data.attempt}, Versuche: ${currentAttempt}`, 'success');
-
-    const hashDisplay = document.getElementById('hashDisplay');
-    if (hashDisplay) {
-        hashDisplay.classList.add('valid');
-    }
-
-    // Stop the simulation first
-    stopMining();
-
-    // Actually mine the block
-    const difficulty = parseInt(document.getElementById('difficultySlider').value);
+        const elapsed = (Date.now() - miningStartTime) / 1000;
+        updateMiningDisplay(elapsed);
+    }, 100);
 
     fetch('/api/mine/start', {
         method: 'POST',
@@ -762,23 +601,97 @@ function onMiningSuccess(data) {
     })
     .then(response => response.json())
     .then(result => {
-        if (result.success) {
-            addLogEntry(`Block #${result.block_index} erfolgreich gemined!`, 'success');
-            addLogEntry(`${result.transactions_mined} Transaktionen verarbeitet`, 'success');
-            addLogEntry(`Mining-Zeit: ${result.mining_time.toFixed(2)} Sekunden`, 'success');
+        clearInterval(progressInterval);
 
-            // Redirect to blockchain explorer after success
-            setTimeout(() => {
-                window.location.href = '/blockchain/block/' + result.block_index;
-            }, 3000);
+        console.log('=== ECHTES MINING BEENDET ===');
+        console.log('Zeit nach echtem Mining:', new Date().toLocaleTimeString());
+        console.log('Backend Mining-Zeit:', result.mining_time);
+
+        if (result.success) {
+            onMiningSuccess(result);
         } else {
-            addLogEntry('Fehler beim Erstellen des Blocks: ' + result.error, 'error');
+            onMiningError(result.error);
         }
     })
     .catch(error => {
-        addLogEntry('Fehler beim Mining: ' + error.message, 'error');
+        clearInterval(progressInterval);
         console.error('Mining error:', error);
+        onMiningError(error.message);
     });
+}
+
+function updateMiningDisplay(elapsedSeconds) {
+    const attemptsCount = document.getElementById('attemptsCount');
+    const hashRateElement = document.getElementById('hashRate');
+    const estimatedTime = document.getElementById('estimatedTime');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressFill = document.getElementById('progressFill');
+    const hashDisplay = document.getElementById('hashDisplay');
+
+    // Show elapsed time and estimated progress
+    if (attemptsCount) attemptsCount.textContent = `${elapsedSeconds.toFixed(1)}s`;
+    if (hashRateElement) hashRateElement.textContent = 'Mining...';
+    if (estimatedTime) estimatedTime.textContent = 'In Bearbeitung...';
+
+    // Show pulsing progress
+    const progress = Math.min((elapsedSeconds / 10) * 100, 95); // Max 95% until done
+    if (progressFill) progressFill.style.width = progress + '%';
+    if (progressPercent) progressPercent.textContent = Math.round(progress) + '%';
+
+    // Update hash display
+    if (hashDisplay) {
+        hashDisplay.textContent = `Mining läuft seit ${elapsedSeconds.toFixed(1)} Sekunden...`;
+    }
+}
+
+function onMiningSuccess(result) {
+    isMining = false;
+
+    const totalTime = (Date.now() - miningStartTime) / 1000;
+
+    addLogEntry(`🎉 BLOCK GEFUNDEN!`, 'success');
+    addLogEntry(`Block #${result.block_index} erfolgreich gemined!`, 'success');
+    addLogEntry(`${result.transactions_mined} Transaktionen verarbeitet`, 'success');
+    addLogEntry(`Mining-Zeit: ${result.mining_time.toFixed(4)} Sekunden`, 'success');
+    addLogEntry(`Frontend-Zeit: ${totalTime.toFixed(2)} Sekunden`, 'success');
+
+    // Update hash display with success
+    const hashDisplay = document.getElementById('hashDisplay');
+    if (hashDisplay) {
+        hashDisplay.textContent = `Block gefunden! Hash: ${result.hash.substring(0, 16)}...`;
+        hashDisplay.classList.add('valid');
+    }
+
+    // Reset UI
+    resetMiningUI();
+
+    // Redirect to blockchain explorer after success
+    setTimeout(() => {
+        window.location.href = '/blockchain/block/' + result.block_index;
+    }, 3000);
+}
+
+function onMiningError(error) {
+    isMining = false;
+
+    addLogEntry('Fehler beim Mining: ' + error, 'error');
+    console.error('Mining error:', error);
+
+    resetMiningUI();
+}
+
+function resetMiningUI() {
+    const mineButton = document.getElementById('mineButton');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+    const miningProgress = document.getElementById('miningProgress');
+
+    mineButton.innerHTML = '<i class="bi bi-play-circle me-2"></i>Mining starten';
+    mineButton.disabled = false;
+
+    statusIndicator.classList.remove('mining');
+    statusText.textContent = 'Mining abgeschlossen';
+    miningProgress.style.display = 'none';
 }
 
 function addLogEntry(message, type = '') {
@@ -788,10 +701,10 @@ function addLogEntry(message, type = '') {
     const entry = document.createElement('div');
     entry.className = `log-entry ${type}`;
     entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-    
+
     miningLog.appendChild(entry);
     miningLog.scrollTop = miningLog.scrollHeight;
-    
+
     // Remove old entries if too many
     const entries = miningLog.querySelectorAll('.log-entry');
     if (entries.length > 50) {
@@ -803,9 +716,7 @@ function addLogEntry(message, type = '') {
 document.addEventListener('keydown', function(e) {
     if (e.key === ' ' && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
-        if (isMining) {
-            stopMining();
-        } else {
+        if (!isMining) {
             startMining();
         }
     }

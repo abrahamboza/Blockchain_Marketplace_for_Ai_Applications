@@ -5,7 +5,7 @@ import json
 import hashlib
 import time
 from database import BlockEntry
-from Storage_IPFS_sim.simulated_ipfs import SimulatedIPFS
+from simulated_ipfs import SimulatedIPFS
 import uuid
 
 
@@ -679,23 +679,25 @@ class MarketplaceBlockchain(Blockchain):
         finally:
             session.close()
 
-    def make_block(self, proof: int, difficulty: int = 4) -> Block:
+    def make_block(self, proof: int, difficulty: int = 4, mining_time: float = 0.0) -> Block:
         """
         Creates a new Block in the Blockchain
         :param proof: The proof of work
         :param difficulty: The difficulty used for mining
+        :param mining_time: The actual time taken to mine this block in seconds
         :return: new Block
         """
         previous_block = self.last_block
 
-        # Neuen Block erstellen
+        # Neuen Block erstellen mit Schwierigkeit und Mining-Zeit
         block = Block(
             index=len(self.chain),
             previous_hash=previous_block.hash,
             timestamp=time.time(),
             transactions=self.current_transactions,
             proof=proof,
-            difficulty=difficulty,  # Include difficulty parameter
+            difficulty=difficulty,  # Store the difficulty used
+            mining_time=mining_time,  # Store the actual mining time
         )
 
         # Reset current transactions
@@ -727,6 +729,8 @@ class MarketplaceBlockchain(Blockchain):
                 existing_block.timestamp = block.timestamp
                 existing_block.proof = block.proof
                 existing_block.block_hash = block.hash
+                existing_block.difficulty = getattr(block, 'difficulty', 4)  # Update difficulty
+                existing_block.mining_time = getattr(block, 'mining_time', 0.0)  # Update mining time
                 existing_block.transactions_json = json.dumps(block.transactions)
             else:
                 # Block neu anlegen
@@ -736,6 +740,8 @@ class MarketplaceBlockchain(Blockchain):
                     timestamp=block.timestamp,
                     proof=block.proof,
                     block_hash=block.hash,
+                    difficulty=getattr(block, 'difficulty', 4),  # Store difficulty
+                    mining_time=getattr(block, 'mining_time', 0.0),  # Store mining time
                     transactions_json=json.dumps(block.transactions)
                 )
                 session.add(block_entry)
