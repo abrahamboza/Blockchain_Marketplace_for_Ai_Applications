@@ -9,18 +9,49 @@ from database import User, DataEntry, ModelEntry, EncryptedFile
 def reset_database():
     """
     Setzt die Datenbank zurück, um mit einer frischen Blockchain zu starten.
-    Löscht die SQLite-Datenbankdatei und die data_keys.json.
+    Löscht die SQLite-Datenbankdatei, die data_keys.json und den IPFS Storage.
     """
+    import time
     try:
-        # SQLite-Datenbankdatei löschen
+        # SQLite-Datenbankdatei löschen (mit Retry-Logik)
         if os.path.exists('marketplace.db'):
-            os.remove('marketplace.db')
-            print("Datenbank zurückgesetzt.")
+            for attempt in range(3):
+                try:
+                    os.remove('marketplace.db')
+                    print("Datenbank zurückgesetzt.")
+                    break
+                except PermissionError:
+                    if attempt < 2:
+                        print(f"Datei gesperrt, Versuch {attempt + 1}/3...")
+                        time.sleep(1)
+                    else:
+                        print("⚠️ Datenbank konnte nicht gelöscht werden (wird von anderem Prozess verwendet)")
+                        print("→ Wird beim nächsten Start überschrieben")
 
-        # Auch die data_keys.json löschen, wenn vorhanden
+        # data_keys.json löschen
         if os.path.exists('data_keys.json'):
             os.remove('data_keys.json')
             print("Schlüsseldatei zurückgesetzt.")
+
+        ipfs_storage_dir = 'ipfs_storage'
+        if os.path.exists(ipfs_storage_dir):
+            import shutil
+            try:
+                # Nur objects/ und temp/ Ordner leeren
+                objects_dir = os.path.join(ipfs_storage_dir, 'objects')
+                temp_dir = os.path.join(ipfs_storage_dir, 'temp')
+
+                if os.path.exists(objects_dir):
+                    shutil.rmtree(objects_dir)
+                    os.makedirs(objects_dir)
+
+                if os.path.exists(temp_dir):
+                    shutil.rmtree(temp_dir)
+                    os.makedirs(temp_dir)
+
+                print("IPFS Storage Daten zurückgesetzt.")
+            except Exception as e:
+                print(f"⚠️ IPFS Storage Reset Fehler: {e}")
 
         # Neue leere data_keys.json erstellen
         with open('data_keys.json', 'w') as f:
@@ -29,7 +60,7 @@ def reset_database():
 
         return True
     except Exception as e:
-        print(f"Fehler beim Zurücksetzen der Datenbank: {e}")
+        print(f"Fehler beim Zurücksetzen: {e}")
         return False
 
 

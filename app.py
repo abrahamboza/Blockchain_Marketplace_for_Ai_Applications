@@ -15,6 +15,7 @@ from flask import send_file
 import io
 import json
 from database import User
+from database_handling import reset_database
 from database import DatabaseManager
 # Flask App Initialisierung
 app = Flask(__name__)
@@ -1923,5 +1924,17 @@ def purchase_status_api():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
+    print("=== APP START ===")
+    print("Führe Database Reset durch...")
+
+    result = reset_database()
+    if result:
+        print("✅ Reset erfolgreich")
+    else:
+        print("❌ Reset fehlgeschlagen")
+
+    print("Starte Flask App...")
     app.run(debug=True)

@@ -142,14 +142,7 @@ class Blockchain:
         # Return index of the block which will handle the transaction
         return self.last_block.index + 1
 
-    def update_state(self) -> None:
-        """
-        updates the state of the blockchain using all transactions
-        :return:
-        """
 
-        # Normally here we would synch all Account values and update them
-        # >> maybe implement later
 
     def make_block(self, proof: int, difficulty: int = 4, mining_time: float = 0.0) -> Block:
         """
@@ -243,15 +236,7 @@ class Blockchain:
 
         return True
 
-    def consensus(self) -> bool:
-        """
-        Simple Consens algorithm >> find the longest chain
-        :return: True if chain got replaced False if not
-        """
-        # Normally we would check the chains of other nodes here
-        # and compare them but this will probably be implemented later or
-        # not at all
-        return False
+
 
     def proof_of_work(self, last_proof: int, difficulty: int = 4) -> tuple:
         """
