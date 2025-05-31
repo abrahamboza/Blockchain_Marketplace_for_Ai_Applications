@@ -314,57 +314,6 @@
     </div>
 </section>
 
-<!-- Theory Overview Section -->
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-4">Theoretische Grundlagen</h2>
-        <p class="text-center mb-5">Dieser Mockup integriert drei zentrale technologische Konzepte, um einen sicheren und transparenten Datenmarktplatz zu schaffen:</p>
-
-        <div class="row">
-            <div class="col-md-4">
-                <div class="theory-card">
-                    <div class="theory-header bchain-header">
-                        <i class="bi bi-link-45deg theory-icon"></i>
-                        Blockchain-Technologie
-                    </div>
-                    <div class="card-body">
-                        <p>Die Blockchain dient als unveränderliches, verteiltes Hauptbuch für alle Transaktionen. Jeder Block enthält kryptographisch signierte Transaktionen, was die Integrität und Herkunft aller Daten und Modelle gewährleistet.</p>
-                        <p>Die Implementierung nutzt einen angepassten Proof-of-Work Konsensmechanismus mit variabler Schwierigkeit.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="theory-card">
-                    <div class="theory-header crypto-header">
-                        <i class="bi bi-shield-lock theory-icon"></i>
-                        Kryptographische Verfahren
-                    </div>
-                    <div class="card-body">
-                        <p>Alle Daten werden mittels Ende-zu-Ende-Verschlüsselung geschützt. Diese Implementierung verwendet Fernet-Verschlüsselung für den sicheren Datenaustausch, während SHA-256 für die Blockchain-Integrität sorgt.</p>
-                        <p>Die Verschlüsselungsschlüssel werden separat vom Blockchain-Netzwerk verwaltet, was eine zusätzliche Sicherheitsebene schafft.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="theory-card">
-                    <div class="theory-header ml-header">
-                        <i class="bi bi-cpu theory-icon"></i>
-                        Maschinelles Lernen
-                    </div>
-                    <div class="card-body">
-                        <p>Der Marketplace ermöglicht das Trainieren von ML-Modellen mit verifizierbarer Datenherkunft. Alle Trainingsparameter, verwendete Datensätze und resultierende Metriken werden in der Blockchain festgehalten.</p>
-                        <p>Dies schafft eine vollständige Nachvollziehbarkeit des ML-Prozesses und ermöglicht die Verifikation von Modelleigenschaften ohne Offenlegung der Trainingsdaten.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="note-box mt-5">
-            <h5>Benutzer Hinweis</h5>
-            <p class="mb-0">Diese Plattform wurde entwickelt, um die konzeptionellen und technischen Aspekte eines Blockchain-basierten Datenmarktplatzes zu demonstrieren.Sie ist keine voll funktionsfähige kommerzielle Website. Siehe Github Page im Impressum</p>
-        </div>
-    </div>
-</section>
 
 <!-- Core Components Section -->
 <section class="core-components py-5">
@@ -380,7 +329,7 @@
                     </div>
                     <h4 class="component-title">Blockchain-Modul</h4>
                     <p>Eine Python-basierte Blockchain-Implementierung mit einem anpassbaren Proof-of-Work Algorithmus. Die Blockchain speichert verschiedene Transaktionstypen wie Daten-Uploads, Modelltraining und Käufe.</p>
-                    <p class="mb-0 text-muted">Implementiert in <code>Blockchain/blockchain.py</code></p>
+                    <p class="mb-0 text-muted">Implementiert in <code>Blockchain/blockchain.py und marketplace.py</code></p>
                 </div>
             </div>
             <div class="col-md-6 mb-4">
@@ -417,69 +366,6 @@
     </div>
 </section>
 
-<!-- Implementation Details (with Code) -->
-<section class="implementation-section py-5">
-    <div class="container">
-        <h2 class="text-center mb-4">Implementierungsdetails</h2>
-        <p class="text-center mb-5">Einblick in die technische Umsetzung der Kernfunktionalitäten:</p>
-
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                <h4>Proof-of-Work Konsensmechanismus</h4>
-                <p>Die Blockchain verwendet einen anpassbaren Proof-of-Work Algorithmus ähnlich dem von Bitcoin, aber mit kontrollierbarer Schwierigkeit für Bildungszwecke:</p>
-
-                <div class="code-block">
-<span class="comment"># Simplified Proof-of-Work implementation</span>
-def proof_of_work(self, last_proof: int, difficulty: int = 4) -> tuple:
-    <span class="comment">"""
-    Find a number P' so that hash(P * P') has 'difficulty' leading zeros
-    """</span>
-    start_time = time.time()
-    proof = 0
-
-    while self.valid_proof(last_proof, proof, difficulty) is False:
-        proof += 1
-
-    end_time = time.time()
-    time_taken = end_time - start_time
-    return proof, time_taken
-
-def valid_proof(self, last_proof: int, proof: int, difficulty: int = 4) -> bool:
-    <span class="comment">"""Validates if hash(last_proof, proof) has 'difficulty' leading zeros"""</span>
-    guess = f"{last_proof}{proof}".encode()
-    guess_hash = hashlib.sha256(guess).hexdigest()
-    return guess_hash[:difficulty] == "0" * difficulty
-                </div>
-
-                <h4 class="mt-5">Sichere Datenspeicherung</h4>
-                <p>Alle hochgeladenen Daten werden verschlüsselt und dezentral gespeichert:</p>
-
-                <div class="code-block">
-<span class="comment"># Encryption and storage of data</span>
-def upload_data_with_file(self, owner_address, file_content, metadata, price):
-    <span class="comment">"""Encrypts and stores data securely"""</span>
-    # Generate encryption key
-    key = generate_key()
-    encrypted_content = encrypt_file(file_content, key)
-    key_hash = hash_key(key)
-
-    # Store in IPFS and get CID
-    ipfs_cid = self.ipfs.add(encrypted_content, {
-        "owner": owner_address,
-        "metadata": json.dumps(metadata),
-        "encrypted": True
-    })
-    self.ipfs.pin(ipfs_cid)  # Pin for persistence
-
-    # Create blockchain transaction
-    data_id = self.data_upload_transaction(owner_address, metadata, price)
-
-    return data_id, key.decode()  # Return ID and decryption key
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
 
 <!-- Blockchain Visualization Section -->
 <section class="demo-section py-5">
@@ -533,34 +419,6 @@ def upload_data_with_file(self, owner_address, file_content, metadata, price):
                     </div>
                     <h5 class="feature-title">Integriertes ML-Training</h5>
                     <p class="feature-description">Trainiere Machine-Learning-Modelle direkt auf der Plattform mit vollständiger Dokumentation der Datenprovenienz, Algorithmen und Leistungsmetriken.(Nicht implementiert bis jetzt siehe Github Branch Status)</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- CTA Section -->
-<section class="cta-section py-5">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-7">
-                <h2>Erkunde den Marktplatz-Demo</h2>
-                <p class="lead">Experimentiere mit den verschiedenen Funktionen dieses Blockchain-gestützten Datenmarktplatzes.</p>
-
-                <ul class="exploration-steps mt-4">
-                    <li>Erkunde die Blockchain-Struktur und die gespeicherten Transaktionen im Blockchain Explorer.</li>
-                    <li>Lade einen eigenen Datensatz hoch und verschlüssele ihn automatisch mit Ende-zu-Ende-Verschlüsselung.</li>
-                    <li>Durchsuche die vorhandenen Datensätze und Modelle im Marketplace.</li>
-                    <li>Trainiere ein Machine-Learning-Modell mit verifizierbarer Datenherkunft.</li>
-                </ul>
-            </div>
-            <div class="col-lg-5">
-                <div class="text-center text-lg-end mt-4 mt-lg-0">
-                    <div class="cta-buttons">
-                        <a href="/upload-dataset" class="btn btn-light">Datensatz hochladen</a>
-                        <a href="/marketplace" class="btn btn-outline-light">Marktplatz erkunden</a>
-                        <a href="/training/dashboard" class="btn btn-outline-light">ML-Training starten</a>
-                    </div>
                 </div>
             </div>
         </div>
