@@ -208,7 +208,7 @@ class Blockchain:
         if block.index != previous_block.index + 1:
             return False
 
-        if not self.valid_proof(previous_block.proof, block.proof):
+        if not self.valid_proof(previous_block.proof, block.proof, block.difficulty):
             return False
 
         for transaction in block.transactions:

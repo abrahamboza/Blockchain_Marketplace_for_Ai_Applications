@@ -17,7 +17,8 @@ class MarketplaceBlockchain(Blockchain):
         # Datenbankmanager erstellen, falls keiner übergeben wurde
         self.db_manager = db_manager or DatabaseManager()
 
-        # Initialize the IPFS integration
+
+        # Initialisiere die IPFS integration
         self.ipfs = SimulatedIPFS()
 
     def register_user(self, address, public_key=None):
@@ -104,17 +105,17 @@ class MarketplaceBlockchain(Blockchain):
             session.add(data_entry)
             session.flush()  # ID generieren
 
-            # Verschlüsselte Datei in der Datenbank speichern - now just a reference to IPFS
+            # Verschlüsselte Datei in der Datenbank speichern - nur noch als referenz zu IPFS
             encrypted_file = EncryptedFile(
                 file_hash=file_hash,
                 encryption_key_hash=key_hash,
-                ipfs_cid=ipfs_cid,  # Store IPFS CID instead of the actual content
+                ipfs_cid=ipfs_cid,  # speichere IPFS CID
                 data_entry_id=data_entry.id
             )
             session.add(encrypted_file)
             session.commit()
 
-            # NEUER CODE: Verschlüsselungsschlüssel speichern
+            # Verschlüsselungsschlüssel speichern
             try:
                 import key_manager
                 print(f"DEBUG: Speichere Schlüssel für {data_id}")
@@ -154,11 +155,11 @@ class MarketplaceBlockchain(Blockchain):
             encrypted_content = encrypt_file(file_content, key)
             key_hash = hash_key(key)
 
-            # Calculate unique hash for the file
+            # Erstelle einen eindeutigen Hash für die Datei
             unique_data = (str(file_content) + str(time.time()) + str(user.id)).encode()
             file_hash = hashlib.sha256(unique_data).hexdigest()
 
-            # Store in IPFS and get CID
+
             ipfs_cid = self.ipfs.add(encrypted_content, {
                 "owner": owner_address,
                 "file_hash": file_hash,
@@ -168,7 +169,7 @@ class MarketplaceBlockchain(Blockchain):
             })
             self.ipfs.pin(ipfs_cid)
 
-            # Prepare metadata for the blockchain
+            # Metadaten aktualisieren
             metadata_with_hash = metadata.copy()
             metadata_with_hash['file_hash'] = file_hash
             metadata_with_hash['ipfs_cid'] = ipfs_cid
@@ -187,17 +188,17 @@ class MarketplaceBlockchain(Blockchain):
             session.add(model_entry)
             session.flush()  # ID generieren
 
-            # Verschlüsselte Datei in der Datenbank speichern - now just a reference to IPFS
+            # Verschlüsselte Datei in der Datenbank speichern
             encrypted_file = EncryptedFile(
                 file_hash=file_hash,
                 encryption_key_hash=key_hash,
-                ipfs_cid=ipfs_cid,  # Store IPFS CID
+                ipfs_cid=ipfs_cid,
                 model_entry_id=model_entry.id
             )
             session.add(encrypted_file)
             session.commit()
 
-            # NEUER CODE: Verschlüsselungsschlüssel speichern
+            #Verschlüsselungsschlüssel speichern
             try:
                 import key_manager
                 print(f"DEBUG: Speichere Schlüssel für {model_id}")
@@ -247,7 +248,7 @@ class MarketplaceBlockchain(Blockchain):
 
             print(f"✅ ModelEntry gefunden: ID {model_entry.id}, Owner ID: {model_entry.owner_id}")
 
-            # NEUE LOGIK: Überprüfen der Zugriffsberechtigung
+            # Überprüfen der Zugriffsberechtigung
             has_access = False
             access_reason = ""
 
@@ -334,7 +335,7 @@ class MarketplaceBlockchain(Blockchain):
 
             print(f"✅ IPFS CID gefunden: {ipfs_cid}")
 
-            # Retrieve encrypted content from IPFS
+            # Inhalt aus IPFS abrufenq
             encrypted_content = self.ipfs.get(ipfs_cid)
             if not encrypted_content:
                 print(f"❌ Inhalt konnte nicht aus IPFS abgerufen werden")
@@ -453,6 +454,7 @@ class MarketplaceBlockchain(Blockchain):
         finally:
             session.close()
 
+    # sollte jetzt funktionieren als klasseninterne Methode
     def _load_encryption_key(self, item_id):
         """Lädt den Verschlüsselungsschlüssel für ein Item"""
         import os
@@ -567,7 +569,7 @@ class MarketplaceBlockchain(Blockchain):
 
             print(f"✅ DataEntry gefunden: ID {data_entry.id}, Owner ID: {data_entry.owner_id}")
 
-            # NEUE LOGIK: Überprüfen der Zugriffsberechtigung
+            # Überprüfen der Zugriffsberechtigung
             has_access = False
             access_reason = ""
 
@@ -633,7 +635,7 @@ class MarketplaceBlockchain(Blockchain):
 
             print(f"✅ Verschlüsselte Datei gefunden")
 
-            # Get the IPFS CID from metadata or the encrypted_file record
+            # Ipfs daten holen
             ipfs_cid = None
             metadata = json.loads(data_entry.data_metadata) if data_entry.data_metadata else {}
             ipfs_cid = metadata.get("ipfs_cid") or encrypted_file.ipfs_cid
@@ -654,7 +656,7 @@ class MarketplaceBlockchain(Blockchain):
 
             print(f"✅ IPFS CID gefunden: {ipfs_cid}")
 
-            # Retrieve encrypted content from IPFS
+            # verschlüsselten Inhalt aus IPFS abrufen
             encrypted_content = self.ipfs.get(ipfs_cid)
             if not encrypted_content:
                 print(f"❌ Inhalt konnte nicht aus IPFS abgerufen werden")
@@ -700,13 +702,13 @@ class MarketplaceBlockchain(Blockchain):
             mining_time=mining_time,  # Store the actual mining time
         )
 
-        # Reset current transactions
+        # Reset transactions
         self.current_transactions = []
 
-        # Add Block to the chain
+        # block hinzufügen
         self.chain.append(block)
 
-        # Save block in db
+        # block in der Datenbank speichern
         try:
             self._save_block_to_database(block)
         except Exception as e:

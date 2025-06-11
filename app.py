@@ -240,19 +240,10 @@ def logout():
     return redirect(url_for('index'))
 
 
-# Placeholder-Routen für andere Seiten
-@app.route('/training/dashboard')
-@login_required
-def training_dashboard():
-    flash('Das ML-Training Dashboard ist in Entwicklung.', 'info')
-    return redirect(url_for('index'))
 
 
-@app.route('/admin')
-@login_required
-def admin():
-    flash('Der Admin-Bereich ist in Entwicklung.', 'info')
-    return redirect(url_for('index'))
+
+
 
 
 # Einfacher Geschützer Bereich als Test
@@ -271,9 +262,6 @@ def page_not_found(e):
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('500.html'), 500
-
-from datetime import datetime
-import time
 
 
 # Blockchain Explorer Route
@@ -534,7 +522,7 @@ def block_details(block_index):
         return redirect(url_for('blockchain_explorer'))
 
 
-# API-Endpunkt für Live-Updates (AJAX)
+
 @app.route('/api/blockchain/stats')
 def blockchain_stats_api():
     """JSON-API für Live-Updates des Blockchain Explorers"""
@@ -555,11 +543,9 @@ def blockchain_stats_api():
         return jsonify({'error': str(e)}), 500
 
 
-#######################
 # MARKETPLACE
-#######################
 def initialize_demo_marketplace_data():
-    """Prüft ob die Blockchain bereit ist, erstellt aber keine Demo-Daten mehr"""
+    """Prüft ob die Blockchain bereit ist"""
 
     # Einfache Prüfung ob Blockchain initialisiert ist
     if len(blockchain.chain) == 0:
@@ -859,7 +845,7 @@ def marketplace_purchase():
             flash('Du kannst deine eigenen Items nicht kaufen.', 'warning')
             return redirect(url_for('marketplace_item_details', item_id=item_id))
 
-        # NEU: Prüfe ob User bereits gekauft hat
+        # Prüfe ob User bereits gekauft hat
         already_purchased = check_download_permission(buyer_address, item_id)
         if already_purchased:
             flash('Du hast dieses Item bereits gekauft.', 'info')
@@ -894,7 +880,7 @@ def marketplace_purchase():
 
         print(f"DEBUG Purchase: Transaktion erstellt: {transaction_id}")
 
-        # NEU: Speichere Schlüssel für den Käufer
+        # Speichere Schlüssel für den Käufer
         try:
             save_key_for_buyer(buyer_address, item_id, owner_encryption_key, found_item)
             print(f"DEBUG Purchase: Schlüssel für Käufer {buyer_address} gespeichert")
@@ -1101,7 +1087,7 @@ def get_file_size_mb(file_path):
     size_bytes = os.path.getsize(file_path)
     return round(size_bytes / (1024 * 1024), 2)
 
-
+# Upload-Route für Datasets und Modelle
 @app.route('/upload-dataset', methods=['GET', 'POST'])
 @login_required
 def upload_dataset():
@@ -1238,7 +1224,7 @@ def upload_dataset():
                 print(f"DEBUG Upload: Dataset hochgeladen - ID: {data_id}, Key: {encryption_key[:20]}...")
 
             else:  # model
-                # KORRIGIERT: Verwende upload_model_with_file für automatische Verschlüsselung
+                # KORRIGIERT: upload_model_with_file für automatische Verschlüsselung
                 print(f"DEBUG Upload: Verwende upload_model_with_file für Model...")
                 model_id, encryption_key = blockchain.upload_model_with_file(
                     owner_address, file_content, metadata, price
@@ -1254,11 +1240,10 @@ def upload_dataset():
             item_type = "Dataset" if upload_type == 'dataset' else "Modell"
             pending_count = len(blockchain.current_transactions)
 
-            flash(f'{item_type} "{name}" wurde erfolgreich verschlüsselt und zur Blockchain hinzugefügt!', 'success')
             flash(f'Die Transaktion wartet jetzt auf Mining. Es sind {pending_count} Transaktionen ausstehend.', 'info')
             flash(f'Verschlüsselungsschlüssel wurde sicher gespeichert.', 'info')
 
-            # Weiterleitung zum Marketplace (Item ist noch nicht verfügbar bis gemined)
+            # Weiterleitung zum Marketplace (Item ist noch nicht verfügbar bis gemined --> kann vom user selbst gemined werden)
             return redirect(url_for('marketplace'))
 
         except Exception as blockchain_error:
@@ -1287,14 +1272,13 @@ def upload_dataset():
 
 
 
-# API-Route für Upload-Status (optional für Ajax-Updates)
+
 @app.route('/api/upload/status/<upload_id>')
 @login_required
 def upload_status(upload_id):
     """API-Endpunkt für Upload-Status-Updates"""
     try:
-        # Hier könntest du den Status eines Uploads abfragen
-        # Momentan ein Platzhalter für zukünftige Implementierung
+        # Weis noch nicht ob ich das brauche.
 
         return jsonify({
             'status': 'completed',
@@ -1475,9 +1459,9 @@ def start_mining():
         print(f"ERROR in start_mining API: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-###########################################
+
 #EINKAEUFE EINSEHEN
-##########################################
+
 # Route für "Meine Käufe" Dashboard
 @app.route('/marketplace/my-purchases')
 @login_required
@@ -1589,10 +1573,9 @@ def find_original_item(item_id):
     print(f"DEBUG Original: NICHT GEFUNDEN für ID {item_id}")
     return None
 
-# Download Route für gekaufte Items
-# Erweiterte Debug-Versionen der Download-Funktionen für app.py
 
-# Ersetze die download_item() Funktion in app.py mit dieser Version:
+
+# Download Route für Marketplace-Items
 @app.route('/marketplace/download/<item_id>')
 @login_required
 def download_item(item_id):
@@ -1927,6 +1910,7 @@ def purchase_status_api():
 
 
 if __name__ == '__main__':
+    ### starte entweder manuell app.py (sonst wird automatisch flask ausgefuehrt) oder starte app.py --reset um datenbank und ipfs simulation zu resetten
     print("=== APP START ===")
     print("Führe Database Reset durch...")
 

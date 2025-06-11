@@ -5,23 +5,23 @@ from marketplace import MarketplaceBlockchain
 import base64
 
 
-# Function to save keys to JSON file
+# speichert einen Schlüssel für ein Datenset
 def save_key(name, data_id, encryption_key):
     file_path = "data_keys.json"
     data = {
         "datasets": []
     }
 
-    # Load existing data if file exists
+
     if os.path.exists(file_path):
         try:
             with open(file_path, 'r') as f:
                 data = json.load(f)
         except json.JSONDecodeError:
-            # If file is corrupted, start fresh
+
             data = {"datasets": []}
 
-    # Add new entry
+
     entry = {
         "name": name,
         "data_id": data_id,
@@ -29,17 +29,17 @@ def save_key(name, data_id, encryption_key):
         "upload_date": "2025-05-04"  # Current date
     }
 
-    # Check if data_id already exists to avoid duplicates
+
     for i, dataset in enumerate(data["datasets"]):
         if dataset["data_id"] == data_id:
             # Update existing entry
             data["datasets"][i] = entry
             break
     else:
-        # Add new entry if data_id not found
+
         data["datasets"].append(entry)
 
-    # Save to file
+
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
 
@@ -47,7 +47,7 @@ def save_key(name, data_id, encryption_key):
     return True
 
 
-# Function to retrieve a key
+# Holt den Schlüssel für ein Datenset basierend auf der ID
 def get_key(data_id, user_address=None):
     """
     Holt einen Schlüssel - entweder als Owner oder als Käufer
@@ -108,18 +108,18 @@ def get_key_for_user(data_id, user_address):
 
     return None
 
-# Function to decrypt and retrieve data using stored keys
+# Funktion zum Abrufen von Daten basierend auf der ID
 def retrieve_data(data_id, user_address="test_user"):
-    # Get key info
+
     key_info = get_key(data_id)
     if not key_info:
         return None, "Key not found"
 
     try:
-        # Initialize blockchain
+
         blockchain = MarketplaceBlockchain()
 
-        # Retrieve and decrypt data
+
         content = blockchain.get_data_file(
             user_address,
             data_id,
@@ -131,7 +131,7 @@ def retrieve_data(data_id, user_address="test_user"):
         return None, str(e)
 
 
-# Quick test of the functions
+# Flask App zum Testen der Schlüsselverwaltung
 if __name__ == "__main__":
     # Save the diabetes dataset key
     save_key(
@@ -143,14 +143,3 @@ if __name__ == "__main__":
     # Retrieve the key info
     diabetes_key = get_key("3d13e161f11f42dab712b43ba0f008c8")
     print("Retrieved key info:", diabetes_key)
-
-    # You can uncomment this to test retrieving the actual data
-    # data, error = retrieve_data("3d13e161f11f42dab712b43ba0f008c8")
-    # if error:
-    #     print(f"Error retrieving data: {error}")
-    # else:
-    #     print(f"Successfully retrieved data ({len(data)} bytes)")
-    #     # Save to a file for inspection
-    #     with open("retrieved_diabetes.csv", "wb") as f:
-    #         f.write(data)
-    #     print("Data saved to retrieved_diabetes.csv")
