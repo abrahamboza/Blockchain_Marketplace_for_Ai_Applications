@@ -23,5 +23,10 @@
         "username": "test2",
         "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
         "blockchain_address": "e10180e1fcf042fe8666d3651702867b"
+    },
+    "Presentation": {
+        "username": "Presentation",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "f6805fb386fd4e0c83adec712072379a"
     }
 }
