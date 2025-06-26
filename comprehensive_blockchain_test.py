@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Einfacher Blockchain Test
+Umfangreicher Blockchain Test
 ========================
 
 Testet die grundlegenden Funktionen der Blockchain-Implementation.
