@@ -430,7 +430,7 @@ def block_details(block_index):
 
         # Mining-Details berechnen
         if block_index > 0:
-            # KORRIGIERT: Verwende die gespeicherte Mining-Zeit aus dem Block
+            # Verwende die gespeicherte Mining-Zeit aus dem Block
             if hasattr(block, 'mining_time') and block.mining_time > 0:
                 block_details['mining_time'] = f"{block.mining_time:.2f} seconds"
             else:
@@ -814,7 +814,7 @@ def marketplace_item_details(item_id):
 @app.route('/marketplace/purchase', methods=['POST'])
 @login_required
 def marketplace_purchase():
-    """Verarbeitet Käufe von Marketplace-Items - KORRIGIERT für Schlüssel-Übertragung"""
+    """Verarbeitet Käufe von Marketplace-Items - für Schlüssel-Übertragung"""
 
     try:
         item_id = request.form.get('item_id')
@@ -1091,7 +1091,7 @@ def get_file_size_mb(file_path):
 @app.route('/upload-dataset', methods=['GET', 'POST'])
 @login_required
 def upload_dataset():
-    """Upload-Seite für Datasets und Modelle mit korrigierter Verschlüsselung"""
+    """Upload-Seite für Datasets und Modelle mit Verschlüsselung"""
 
     if request.method == 'GET':
         return render_template('upload_dataset.html')
@@ -1215,7 +1215,7 @@ def upload_dataset():
         # Zu Blockchain hinzufügen MIT VERSCHLÜSSELUNG
         try:
             if upload_type == 'dataset':
-                # KORRIGIERT: Verwende upload_data_with_file für automatische Verschlüsselung
+                # Verwende upload_data_with_file für automatische Verschlüsselung
                 print(f"DEBUG Upload: Verwende upload_data_with_file für Dataset...")
                 data_id, encryption_key = blockchain.upload_data_with_file(
                     owner_address, file_content, metadata, price
@@ -1224,7 +1224,7 @@ def upload_dataset():
                 print(f"DEBUG Upload: Dataset hochgeladen - ID: {data_id}, Key: {encryption_key[:20]}...")
 
             else:  # model
-                # KORRIGIERT: upload_model_with_file für automatische Verschlüsselung
+                # upload_model_with_file für automatische Verschlüsselung
                 print(f"DEBUG Upload: Verwende upload_model_with_file für Model...")
                 model_id, encryption_key = blockchain.upload_model_with_file(
                     owner_address, file_content, metadata, price
@@ -1466,7 +1466,7 @@ def start_mining():
 @app.route('/marketplace/my-purchases')
 @login_required
 def my_purchases():
-    """Dashboard für gekaufte Items mit korrigierter ID-Logik"""
+    """Dashboard für gekaufte Items mit ID-Logik"""
 
     try:
         user_address = session.get('blockchain_address')
@@ -1574,6 +1574,28 @@ def find_original_item(item_id):
     return None
 
 
+def determine_item_type(item_id):
+    """Bestimmt ob es sich um ein Model oder Dataset handelt"""
+
+    # Suche in der Blockchain nach der Upload-Transaktion
+    for block in blockchain.chain:
+        for tx in block.transactions:
+            if tx.get('transaction_id') == item_id:
+                if tx.get('type') == 'model_upload':
+                    return 'model'
+                elif tx.get('type') == 'data_upload':
+                    return 'dataset'
+
+    # Fallback: auch in ausstehenden Transaktionen suchen
+    for tx in blockchain.current_transactions:
+        if tx.get('transaction_id') == item_id:
+            if tx.get('type') == 'model_upload':
+                return 'model'
+            elif tx.get('type') == 'data_upload':
+                return 'dataset'
+
+    # Standard-Fallback
+    return 'dataset'
 
 # Download Route für Marketplace-Items
 @app.route('/marketplace/download/<item_id>')
@@ -1634,7 +1656,16 @@ def download_item(item_id):
         # 6. Lade und entschlüssele Datei
         try:
             print(f"Versuche Datei zu entschlüsseln...")
-            decrypted_content = blockchain.get_data_file(user_address, item_id, encryption_key)
+            # Bestimme Item-Typ anhand der Original-Transaktion
+            item_type = determine_item_type(item_id)
+            print(f"Item-Typ erkannt: {item_type}")
+
+            if item_type == 'model':
+                print(f"Verwende get_model_file für Model...")
+                decrypted_content = blockchain.get_model_file(user_address, item_id, encryption_key)
+            else:
+                print(f"Verwende get_data_file für Dataset...")
+                decrypted_content = blockchain.get_data_file(user_address, item_id, encryption_key)
             print(f"Entschlüsselung erfolgreich, {len(decrypted_content)} Bytes")
 
             # 7. Bereite Download vor
