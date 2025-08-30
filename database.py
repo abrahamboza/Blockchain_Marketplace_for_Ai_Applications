@@ -101,7 +101,6 @@ class DatabaseManager:
         """Gibt eine neue Datenbanksitzung zurück"""
         return self.Session()
 
-# In database.py hinzufügen (nach den anderen Klassen wie User, DataEntry, etc.)
 class BlockEntry(Base):
     __tablename__ = 'blocks'
 
@@ -111,5 +110,7 @@ class BlockEntry(Base):
     timestamp = Column(Float, nullable=False)
     proof = Column(Integer, nullable=False)
     block_hash = Column(String(64), nullable=False)
+    difficulty = Column(Integer, nullable=False, default=4)  # NEW: Store difficulty
+    mining_time = Column(Float, nullable=False, default=0.0)  # NEW: Store actual mining time
     # JSON-Repräsentation der Transaktionen
     transactions_json = Column(Text, nullable=False)

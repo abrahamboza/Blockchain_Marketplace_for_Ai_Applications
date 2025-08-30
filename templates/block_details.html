@@ -1,0 +1,861 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Block #{{ block.index }} Details | Blockchain Explorer{% endblock %}
+
+{% block additional_styles %}
+.block-details {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 200px);
+}
+
+.block-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.block-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.block-subtitle {
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.navigation-bar {
+    background: white;
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.nav-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--gray-300);
+    background: white;
+    color: var(--gray-700);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.nav-btn:hover:not(.disabled) {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.nav-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.breadcrumb-custom {
+    background: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.breadcrumb-custom .breadcrumb-item {
+    color: var(--gray-600);
+}
+
+.breadcrumb-custom .breadcrumb-item.active {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.detail-header {
+    background: var(--gray-50);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.detail-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-dark);
+}
+
+.detail-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.detail-body {
+    padding: 1.5rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 500;
+    color: var(--gray-700);
+    min-width: 120px;
+    flex-shrink: 0;
+}
+
+.detail-value {
+    color: var(--text-dark);
+    text-align: right;
+    word-break: break-all;
+    flex: 1;
+    margin-left: 1rem;
+}
+
+.hash-value {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    background: var(--gray-50);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--gray-200);
+    position: relative;
+}
+
+.copy-btn {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.hash-value:hover .copy-btn {
+    opacity: 1;
+}
+
+.pow-verification {
+    background: linear-gradient(45deg, rgba(16, 185, 129, 0.05), rgba(59, 130, 246, 0.05));
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.pow-title {
+    color: var(--success-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.pow-title i {
+    margin-right: 0.5rem;
+}
+
+.pow-steps {
+    display: grid;
+    gap: 1rem;
+}
+
+.pow-step {
+    background: white;
+    padding: 1rem;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.pow-step-title {
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.pow-step-content {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: var(--gray-600);
+    background: var(--gray-50);
+    padding: 0.5rem;
+    border-radius: 3px;
+}
+
+.leading-zeros {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
+.validation-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+.validation-badge.valid {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.validation-badge.invalid {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+}
+
+.validation-badge i {
+    margin-right: 0.5rem;
+}
+
+.transactions-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-dark);
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.transaction-count {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.transaction-list {
+    padding: 0;
+}
+
+.transaction-item {
+    border-bottom: 1px solid var(--gray-100);
+    padding: 1.5rem;
+    transition: background-color 0.3s;
+}
+
+.transaction-item:hover {
+    background: var(--gray-50);
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.tx-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.tx-id-display {
+    font-family: 'Courier New', monospace;
+    color: var(--primary-color);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.tx-type-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.tx-type-badge.data-upload {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary-color);
+}
+
+.tx-type-badge.model-upload {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--secondary-color);
+}
+
+.tx-type-badge.data-purchase, .tx-type-badge.model-purchase {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success-color);
+}
+
+.tx-type-badge.transfer {
+    background: rgba(107, 114, 128, 0.1);
+    color: var(--gray-600);
+}
+
+.tx-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.tx-detail {
+    background: var(--gray-50);
+    padding: 0.75rem;
+    border-radius: 6px;
+}
+
+.tx-detail-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.tx-detail-value {
+    color: var(--text-dark);
+    font-weight: 500;
+    word-break: break-all;
+}
+
+.tx-metadata {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-radius: 6px;
+    border-left: 4px solid var(--secondary-color);
+}
+
+.metadata-title {
+    font-weight: 600;
+    color: var(--secondary-color);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.metadata-content {
+    font-size: 0.85rem;
+    color: var(--gray-700);
+}
+
+.no-transactions {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-500);
+}
+
+.no-transactions i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--gray-400);
+}
+
+.genesis-badge {
+    background: linear-gradient(45deg, var(--success-color), var(--primary-color));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    margin-left: 1rem;
+}
+
+.genesis-badge i {
+    margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .block-title {
+        font-size: 2rem;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .detail-value {
+        margin-left: 0;
+        margin-top: 0.5rem;
+        text-align: left;
+    }
+    
+    .tx-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .nav-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .hash-value {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="block-details">
+    <!-- Block Header -->
+    <section class="block-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb breadcrumb-custom">
+                            <li class="breadcrumb-item">
+                                <a href="/" class="text-white-50">Home</a>
+                            </li>
+                            <li class="breadcrumb-item">
+                                <a href="/blockchain" class="text-white-50">Blockchain Explorer</a>
+                            </li>
+                            <li class="breadcrumb-item active text-white">Block #{{ block.index }}</li>
+                        </ol>
+                    </nav>
+                    <h1 class="block-title">
+                        <i class="bi bi-layers me-3"></i>
+                        Block #{{ block.index }}
+                        {% if block.index == 0 %}
+                        <span class="genesis-badge">
+                            <i class="bi bi-star-fill"></i>
+                            Genesis Block
+                        </span>
+                        {% endif %}
+                    </h1>
+                    <p class="block-subtitle">{{ block.formatted_timestamp }}</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Navigation Bar -->
+        <div class="navigation-bar">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="nav-buttons">
+                    {% if navigation.has_previous %}
+                    <a href="/blockchain/block/{{ navigation.previous_index }}" class="nav-btn">
+                        <i class="bi bi-chevron-left"></i>
+                        Previous Block
+                    </a>
+                    {% else %}
+                    <span class="nav-btn disabled">
+                        <i class="bi bi-chevron-left"></i>
+                        Previous Block
+                    </span>
+                    {% endif %}
+
+                    <a href="/blockchain" class="nav-btn">
+                        <i class="bi bi-list"></i>
+                        All Blocks
+                    </a>
+
+                    {% if navigation.has_next %}
+                    <a href="/blockchain/block/{{ navigation.next_index }}" class="nav-btn">
+                        Next Block
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                    {% else %}
+                    <span class="nav-btn disabled">
+                        Next Block
+                        <i class="bi bi-chevron-right"></i>
+                    </span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <span class="text-muted">Block {{ block.index + 1 }} of {{ block.index + 1 }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Block Information Grid -->
+        <div class="detail-grid">
+            <!-- Basic Information -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <h3 class="detail-title">
+                        <i class="bi bi-info-circle"></i>
+                        Basic Information
+                    </h3>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-item">
+                        <span class="detail-label">Block Index:</span>
+                        <span class="detail-value">#{{ block.index }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Timestamp:</span>
+                        <span class="detail-value">{{ block.formatted_timestamp }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Transactions:</span>
+                        <span class="detail-value">{{ block.transaction_count }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Block Size:</span>
+                        <span class="detail-value">{{ "%.2f"|format(block.block_size / 1024) }} KB</span>
+                    </div>
+                    {% if block.mining_time != "Genesis Block" %}
+                    <div class="detail-item">
+                        <span class="detail-label">Mining Time:</span>
+                        <span class="detail-value">{{ block.mining_time }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Hash Information -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <h3 class="detail-title">
+                        <i class="bi bi-shield-check"></i>
+                        Hash Information
+                    </h3>
+                </div>
+                <div class="detail-body">
+                    <div class="detail-item">
+                        <span class="detail-label">Block Hash:</span>
+                        <div class="detail-value">
+                            <div class="hash-value">
+                                {{ block.hash }}
+                                <button class="copy-btn" onclick="copyToClipboard('{{ block.hash }}', this)">
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Previous Hash:</span>
+                        <div class="detail-value">
+                            <div class="hash-value">
+                                {{ block.previous_hash }}
+                                <button class="copy-btn" onclick="copyToClipboard('{{ block.previous_hash }}', this)">
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Proof of Work:</span>
+                        <span class="detail-value">{{ block.proof }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proof of Work Verification -->
+        {% if block.pow_verification %}
+        <div class="pow-verification">
+            <h4 class="pow-title">
+                <i class="bi bi-cpu"></i>
+                Proof-of-Work Verification
+            </h4>
+            
+            <div class="pow-steps">
+                <div class="pow-step">
+                    <div class="pow-step-title">Step 1: Combine Proofs</div>
+                    <div class="pow-step-content">
+                        Previous Proof ({{ block.pow_verification.last_proof }}) + Current Proof ({{ block.pow_verification.current_proof }}) = "{{ block.pow_verification.last_proof }}{{ block.pow_verification.current_proof }}"
+                    </div>
+                </div>
+                
+                <div class="pow-step">
+                    <div class="pow-step-title">Step 2: SHA-256 Hash</div>
+                    <div class="pow-step-content">
+                        SHA-256("{{ block.pow_verification.last_proof }}{{ block.pow_verification.current_proof }}") = {{ block.pow_verification.combined_hash }}
+                    </div>
+                </div>
+                
+                <div class="pow-step">
+                    <div class="pow-step-title">Step 3: Leading Zeros Check</div>
+                    <div class="pow-step-content">
+                        <span class="leading-zeros">{{ block.pow_verification.combined_hash[:block.pow_verification.leading_zeros] }}</span>{{ block.pow_verification.combined_hash[block.pow_verification.leading_zeros:] }}
+                        <br>
+                        <small>Found {{ block.pow_verification.leading_zeros }} leading zeros (required: 4)</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="validation-badge {{ 'valid' if block.pow_verification.is_valid else 'invalid' }}">
+                <i class="bi bi-{{ 'check-circle' if block.pow_verification.is_valid else 'x-circle' }}"></i>
+                {{ 'Valid Proof-of-Work' if block.pow_verification.is_valid else 'Invalid Proof-of-Work' }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Transactions Section -->
+        <div class="transactions-section">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="bi bi-arrow-left-right"></i>
+                    Transactions in Block
+                </h3>
+                <span class="transaction-count">{{ block.transaction_count }}</span>
+            </div>
+            
+            {% if transactions %}
+            <div class="transaction-list">
+                {% for tx in transactions %}
+                <div class="transaction-item">
+                    <div class="tx-header">
+                        <span class="tx-id-display">{{ tx.transaction_id }}</span>
+                        <span class="tx-type-badge {{ tx.type.lower().replace('_', '-') }}">
+                            {{ tx.type.replace('_', ' ').title() }}
+                        </span>
+                    </div>
+                    
+                    <div class="tx-details">
+                        {% if tx.type == 'data_upload' %}
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Owner</div>
+                            <div class="tx-detail-value">{{ tx.owner }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Price</div>
+                            <div class="tx-detail-value">${{ tx.price }}</div>
+                        </div>
+                        {% elif tx.type == 'model_upload' %}
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Owner</div>
+                            <div class="tx-detail-value">{{ tx.owner }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Price</div>
+                            <div class="tx-detail-value">${{ tx.price }}</div>
+                        </div>
+                        {% elif tx.type in ['data_purchase', 'model_purchase'] %}
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Buyer</div>
+                            <div class="tx-detail-value">{{ tx.buyer }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Seller</div>
+                            <div class="tx-detail-value">{{ tx.seller }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Amount</div>
+                            <div class="tx-detail-value">${{ tx.amount }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Item ID</div>
+                            <div class="tx-detail-value">{{ tx.item_id }}</div>
+                        </div>
+                        {% else %}
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">From</div>
+                            <div class="tx-detail-value">{{ tx.sender }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">To</div>
+                            <div class="tx-detail-value">{{ tx.recipient }}</div>
+                        </div>
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Amount</div>
+                            <div class="tx-detail-value">${{ tx.amount }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="tx-detail">
+                            <div class="tx-detail-label">Signature</div>
+                            <div class="tx-detail-value">{{ tx.signature[:16] }}...</div>
+                        </div>
+                    </div>
+                    
+                    {% if tx.metadata and tx.type in ['data_upload', 'model_upload'] %}
+                    <div class="tx-metadata">
+                        <div class="metadata-title">Metadata</div>
+                        <div class="metadata-content">
+                            {% for key, value in tx.metadata.items() %}
+                            <strong>{{ key.title() }}:</strong> {{ value }}<br>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="no-transactions">
+                <i class="bi bi-inbox"></i>
+                <h5>No Transactions</h5>
+                <p>This block contains no transactions.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        {% if navigation.has_previous %}
+        if (e.key === 'ArrowLeft' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            window.location.href = '/blockchain/block/{{ navigation.previous_index }}';
+        }
+        {% endif %}
+        
+        {% if navigation.has_next %}
+        if (e.key === 'ArrowRight' && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            window.location.href = '/blockchain/block/{{ navigation.next_index }}';
+        }
+        {% endif %}
+        
+        // B key to go back to blockchain explorer
+        if (e.key === 'b' || e.key === 'B') {
+            if (!e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                window.location.href = '/blockchain';
+            }
+        }
+        
+        // H key for home
+        if (e.key === 'h' || e.key === 'H') {
+            if (!e.ctrlKey && !e.metaKey) {
+                e.preventDefault();
+                window.location.href = '/';
+            }
+        }
+    });
+    
+    console.log('Block details loaded for Block #{{ block.index }}');
+});
+
+// Copy to clipboard functionality
+function copyToClipboard(text, button) {
+    navigator.clipboard.writeText(text).then(function() {
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        button.style.background = 'var(--success-color)';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = 'var(--primary-color)';
+        }, 2000);
+    }).catch(function(err) {
+        console.error('Could not copy text: ', err);
+        button.textContent = 'Error';
+        button.style.background = 'var(--danger-color)';
+        
+        setTimeout(() => {
+            button.textContent = 'Copy';
+            button.style.background = 'var(--primary-color)';
+        }, 2000);
+    });
+}
+
+// Smooth scroll to sections
+function scrollToSection(sectionId) {
+    const element = document.getElementById(sectionId);
+    if (element) {
+        element.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
+// Add loading states for navigation
+document.querySelectorAll('.nav-btn:not(.disabled)').forEach(button => {
+    button.addEventListener('click', function() {
+        this.style.opacity = '0.7';
+        this.innerHTML = '<i class="bi bi-hourglass-split"></i> Loading...';
+    });
+});
+
+// Print functionality
+function printBlock() {
+    window.print();
+}
+
+// Add print styles
+const printStyles = `
+    <style media="print">
+        .navigation-bar, .nav-buttons { display: none !important; }
+        .block-header { background: white !important; color: black !important; }
+        .detail-card { box-shadow: none !important; border: 1px solid #ddd; }
+        .pow-verification { border: 1px solid #ddd; background: white !important; }
+    </style>
+`;
+document.head.insertAdjacentHTML('beforeend', printStyles);
+</script>
+{% endblock %}

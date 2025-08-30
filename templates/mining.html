@@ -1,0 +1,725 @@
+{% extends "base_layout.html" %}
+
+{% block title %}Mining Dashboard | Blockchain{% endblock %}
+
+{% block additional_styles %}
+.mining-page {
+    background-color: var(--light-bg);
+    min-height: calc(100vh - 200px);
+}
+
+.mining-header {
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--primary-color) 100%);
+    color: white;
+    padding: 3rem 0 2rem;
+    margin-bottom: 2rem;
+}
+
+.mining-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.mining-status {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--warning-color);
+    animation: pulse 2s infinite;
+}
+
+.status-indicator.mining {
+    background-color: var(--success-color);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.mining-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.mining-control {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+}
+
+.mining-animation {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+    text-align: center;
+}
+
+.section-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    color: var(--text-dark);
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.mining-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-box {
+    background: var(--gray-50);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    display: block;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+    margin-top: 0.25rem;
+}
+
+.mine-button {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-bottom: 1rem;
+}
+
+.mine-button:hover:not(:disabled) {
+    background: var(--success-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mine-button:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+    transform: none;
+}
+
+.mining-progress {
+    background: var(--gray-100);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: none;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success-color), var(--primary-color));
+    width: 0%;
+    transition: width 0.3s ease;
+    animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+}
+
+.hash-display {
+    font-family: 'Courier New', monospace;
+    background: var(--dark-bg);
+    color: var(--text-light);
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    word-break: break-all;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.hash-display.valid {
+    background: linear-gradient(45deg, var(--success-color), var(--primary-color));
+    animation: success-pulse 0.5s ease-in-out;
+}
+
+@keyframes success-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+.leading-zeros {
+    color: var(--success-color);
+    font-weight: bold;
+    background: rgba(16, 185, 129, 0.2);
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+.attempt-counter {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+}
+
+.pending-transactions {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.pending-header {
+    background: var(--gray-50);
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+    border-radius: 12px 12px 0 0;
+}
+
+.transaction-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transaction-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--gray-100);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.tx-info {
+    flex: 1;
+}
+
+.tx-type {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.tx-name {
+    font-weight: 500;
+    color: var(--text-dark);
+    margin: 0.25rem 0;
+}
+
+.tx-from {
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+.tx-amount {
+    font-weight: 600;
+    color: var(--success-color);
+}
+
+.difficulty-control {
+    margin-bottom: 1.5rem;
+}
+
+.difficulty-slider {
+    width: 100%;
+    margin: 1rem 0;
+}
+
+.mining-log {
+    background: var(--dark-bg);
+    color: var(--text-light);
+    padding: 1rem;
+    border-radius: 8px;
+    height: 200px;
+    overflow-y: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+}
+
+.log-entry {
+    margin-bottom: 0.5rem;
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.log-entry.success {
+    color: var(--success-color);
+}
+
+.log-entry.error {
+    color: var(--danger-color);
+}
+
+@media (max-width: 1024px) {
+    .mining-dashboard {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .mining-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .mining-header h1 {
+        font-size: 2rem;
+    }
+    
+    .mining-stats {
+        grid-template-columns: 1fr;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="mining-page">
+    <!-- Mining Header -->
+    <section class="mining-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1><i class="bi bi-cpu me-3"></i>Blockchain Mining</h1>
+                    <p class="lead mb-0">Validiere Transaktionen und verdiene durch Proof-of-Work Mining</p>
+                    <div class="mining-status">
+                        <div class="status-indicator" id="statusIndicator"></div>
+                        <span id="statusText">Bereit zum Minen</span>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="text-white">
+                        <strong>Ausstehende Transaktionen:</strong>
+                        <span class="fs-2 d-block">{{ mining_info.pending_transactions }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Mining Dashboard -->
+        <div class="mining-dashboard">
+            <!-- Mining Control Panel -->
+            <div class="mining-control">
+                <h3 class="section-title">
+                    <i class="bi bi-gear"></i>
+                    Mining Control
+                </h3>
+
+                <div class="mining-stats">
+                    <div class="stat-box">
+                        <span class="stat-value">{{ mining_info.next_block_index }}</span>
+                        <div class="stat-label">Nächster Block</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value">{{ mining_info.difficulty }}</span>
+                        <div class="stat-label">Schwierigkeit</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value">{{ mining_info.last_proof }}</span>
+                        <div class="stat-label">Letzter Proof</div>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-value" id="attemptsCount">0</span>
+                        <div class="stat-label">Zeit</div>
+                    </div>
+                </div>
+
+                <div class="difficulty-control">
+                    <label for="difficultySlider" class="form-label">
+                        Mining-Schwierigkeit: <span id="difficultyValue">4</span> führende Nullen
+                    </label>
+                    <input type="range" class="form-range difficulty-slider" 
+                           id="difficultySlider" min="1" max="6" value="4">
+                    <small class="text-muted">Höhere Schwierigkeit = längere Mining-Zeit</small>
+                </div>
+
+                <button class="mine-button" id="mineButton" onclick="startMining()">
+                    <i class="bi bi-play-circle me-2"></i>
+                    Mining starten
+                </button>
+
+                <div class="mining-progress" id="miningProgress">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Mining läuft...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    <small class="text-muted">Suche nach gültigem Hash...</small>
+                </div>
+
+                <div class="mining-log" id="miningLog">
+                    <div class="log-entry">Mining-System bereit...</div>
+                    <div class="log-entry">Verwende SHA-256 Hashing</div>
+                    <div class="log-entry">Ziel: <span class="target-zeros">{{ mining_info.target_zeros }}</span>xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</div>
+                </div>
+            </div>
+
+            <!-- Mining Animation -->
+            <div class="mining-animation">
+                <h3 class="section-title">
+                    <i class="bi bi-hash"></i>
+                    Live Hash-Berechnung
+                </h3>
+
+                <div class="mb-3">
+                    <strong>Input:</strong> {{ mining_info.last_proof }} + <span id="currentProof">?</span>
+                </div>
+
+                <div class="hash-display" id="hashDisplay">
+                    Bereit für Mining...
+                    <div class="attempt-counter" id="attemptCounter">Versuch #0</div>
+                </div>
+
+                <div class="mb-3">
+                    <small class="text-muted">
+                        <strong>Ziel:</strong> Hash muss mit <span id="targetZerosDisplay">{{ mining_info.difficulty }}</span> Nullen beginnen<br>
+                        <strong>Aktuell:</strong> <span id="leadingZerosCount">0</span> / <span id="targetZerosCount">{{ mining_info.difficulty }}</span> Nullen
+                    </small>
+                </div>
+
+                <div class="progress-bar mb-3">
+                    <div class="progress-fill" id="hashProgress"></div>
+                </div>
+
+                <div class="text-center">
+                    <div class="fs-5 mb-2">
+                        <strong>Hashes/Sekunde:</strong> <span id="hashRate">0</span>
+                    </div>
+                    <div class="text-muted">
+                        Geschätzte Zeit: <span id="estimatedTime">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Transactions -->
+        <div class="pending-transactions">
+            <div class="pending-header">
+                <h3 class="section-title">
+                    <i class="bi bi-clock-history"></i>
+                    Ausstehende Transaktionen ({{ mining_info.pending_transactions }})
+                </h3>
+            </div>
+
+            {% if pending_transactions %}
+            <div class="transaction-list">
+                {% for tx in pending_transactions %}
+                <div class="transaction-item">
+                    <div class="tx-info">
+                        <div class="tx-type">{{ tx.type.replace('_', ' ').title() }}</div>
+                        <div class="tx-name">{{ tx.name }}</div>
+                        <div class="tx-from">Von: {{ tx.from }}</div>
+                    </div>
+                    <div class="tx-amount">${{ "%.2f"|format(tx.amount) }}</div>
+                </div>
+                {% endfor %}
+                {% if mining_info.pending_transactions > 5 %}
+                <div class="transaction-item">
+                    <div class="tx-info">
+                        <div class="text-muted">... und {{ mining_info.pending_transactions - 5 }} weitere</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="mt-2 text-muted">Keine ausstehenden Transaktionen</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let isMining = false;
+let miningStartTime = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Difficulty slider
+    const difficultySlider = document.getElementById('difficultySlider');
+    const difficultyValue = document.getElementById('difficultyValue');
+
+    // Update difficulty display when slider changes
+    difficultySlider.addEventListener('input', function() {
+        const newDifficulty = this.value;
+        difficultyValue.textContent = newDifficulty;
+
+        // Update target zeros display elements
+        const targetZerosDisplay = document.getElementById('targetZerosDisplay');
+        const targetZerosCount = document.getElementById('targetZerosCount');
+        const targetZerosElements = document.querySelectorAll('.target-zeros');
+
+        if (targetZerosDisplay) targetZerosDisplay.textContent = newDifficulty;
+        if (targetZerosCount) targetZerosCount.textContent = newDifficulty;
+
+        targetZerosElements.forEach(el => {
+            el.textContent = '0'.repeat(parseInt(newDifficulty));
+        });
+
+        // Update the difficulty in the mining stats
+        const difficultyStatValue = document.querySelector('.mining-stats .stat-box:nth-child(2) .stat-value');
+        if (difficultyStatValue) {
+            difficultyStatValue.textContent = newDifficulty;
+        }
+
+        console.log('Difficulty changed to:', newDifficulty);
+    });
+
+    console.log('Mining dashboard loaded');
+});
+
+function startMining() {
+    if (isMining) {
+        return; // Prevent double-clicking
+    }
+
+    // Get current difficulty from slider
+    const difficultySlider = document.getElementById('difficultySlider');
+    const currentDifficulty = parseInt(difficultySlider.value);
+
+    console.log('Starting REAL mining with difficulty:', currentDifficulty);
+
+    isMining = true;
+    miningStartTime = Date.now();
+
+    // UI Updates
+    const mineButton = document.getElementById('mineButton');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+    const miningProgress = document.getElementById('miningProgress');
+    const hashDisplay = document.getElementById('hashDisplay');
+
+    mineButton.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Mining läuft...';
+    mineButton.disabled = true;
+
+    statusIndicator.classList.add('mining');
+    statusText.textContent = 'Echtes Mining läuft...';
+    miningProgress.style.display = 'block';
+
+    // Show mining status
+    hashDisplay.textContent = 'Mining läuft... Bitte warten...';
+
+    addLogEntry('Echtes Mining gestartet...', 'success');
+    addLogEntry(`Schwierigkeit: ${currentDifficulty} führende Nullen`);
+    addLogEntry('Suche nach gültigem Proof-of-Work...');
+
+    // Start REAL mining immediately
+    startRealMining(currentDifficulty);
+}
+
+function startRealMining(difficulty) {
+    console.log('=== ECHTES MINING STARTET ===');
+    console.log('Difficulty:', difficulty);
+    console.log('Zeit vor echtem Mining:', new Date().toLocaleTimeString());
+
+    // Update progress periodically while mining
+    const progressInterval = setInterval(() => {
+        if (!isMining) {
+            clearInterval(progressInterval);
+            return;
+        }
+
+        const elapsed = (Date.now() - miningStartTime) / 1000;
+        updateMiningDisplay(elapsed);
+    }, 100);
+
+    fetch('/api/mine/start', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            difficulty: difficulty
+        })
+    })
+    .then(response => response.json())
+    .then(result => {
+        clearInterval(progressInterval);
+
+        console.log('=== ECHTES MINING BEENDET ===');
+        console.log('Zeit nach echtem Mining:', new Date().toLocaleTimeString());
+        console.log('Backend Mining-Zeit:', result.mining_time);
+
+        if (result.success) {
+            onMiningSuccess(result);
+        } else {
+            onMiningError(result.error);
+        }
+    })
+    .catch(error => {
+        clearInterval(progressInterval);
+        console.error('Mining error:', error);
+        onMiningError(error.message);
+    });
+}
+
+function updateMiningDisplay(elapsedSeconds) {
+    const attemptsCount = document.getElementById('attemptsCount');
+    const hashRateElement = document.getElementById('hashRate');
+    const estimatedTime = document.getElementById('estimatedTime');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressFill = document.getElementById('progressFill');
+    const hashDisplay = document.getElementById('hashDisplay');
+
+    // Show elapsed time and estimated progress
+    if (attemptsCount) attemptsCount.textContent = `${elapsedSeconds.toFixed(1)}s`;
+    if (hashRateElement) hashRateElement.textContent = 'Mining...';
+    if (estimatedTime) estimatedTime.textContent = 'In Bearbeitung...';
+
+    // Show pulsing progress
+    const progress = Math.min((elapsedSeconds / 10) * 100, 95); // Max 95% until done
+    if (progressFill) progressFill.style.width = progress + '%';
+    if (progressPercent) progressPercent.textContent = Math.round(progress) + '%';
+
+    // Update hash display
+    if (hashDisplay) {
+        hashDisplay.textContent = `Mining läuft seit ${elapsedSeconds.toFixed(1)} Sekunden...`;
+    }
+}
+
+function onMiningSuccess(result) {
+    isMining = false;
+
+    const totalTime = (Date.now() - miningStartTime) / 1000;
+
+    addLogEntry(`🎉 BLOCK GEFUNDEN!`, 'success');
+    addLogEntry(`Block #${result.block_index} erfolgreich gemined!`, 'success');
+    addLogEntry(`${result.transactions_mined} Transaktionen verarbeitet`, 'success');
+    addLogEntry(`Mining-Zeit: ${result.mining_time.toFixed(4)} Sekunden`, 'success');
+    addLogEntry(`Frontend-Zeit: ${totalTime.toFixed(2)} Sekunden`, 'success');
+
+    // Update hash display with success
+    const hashDisplay = document.getElementById('hashDisplay');
+    if (hashDisplay) {
+        hashDisplay.textContent = `Block gefunden! Hash: ${result.hash.substring(0, 16)}...`;
+        hashDisplay.classList.add('valid');
+    }
+
+    // Reset UI
+    resetMiningUI();
+
+    // Redirect to blockchain explorer after success
+    setTimeout(() => {
+        window.location.href = '/blockchain/block/' + result.block_index;
+    }, 3000);
+}
+
+function onMiningError(error) {
+    isMining = false;
+
+    addLogEntry('Fehler beim Mining: ' + error, 'error');
+    console.error('Mining error:', error);
+
+    resetMiningUI();
+}
+
+function resetMiningUI() {
+    const mineButton = document.getElementById('mineButton');
+    const statusIndicator = document.getElementById('statusIndicator');
+    const statusText = document.getElementById('statusText');
+    const miningProgress = document.getElementById('miningProgress');
+
+    mineButton.innerHTML = '<i class="bi bi-play-circle me-2"></i>Mining starten';
+    mineButton.disabled = false;
+
+    statusIndicator.classList.remove('mining');
+    statusText.textContent = 'Mining abgeschlossen';
+    miningProgress.style.display = 'none';
+}
+
+function addLogEntry(message, type = '') {
+    const miningLog = document.getElementById('miningLog');
+    if (!miningLog) return;
+
+    const entry = document.createElement('div');
+    entry.className = `log-entry ${type}`;
+    entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+
+    miningLog.appendChild(entry);
+    miningLog.scrollTop = miningLog.scrollHeight;
+
+    // Remove old entries if too many
+    const entries = miningLog.querySelectorAll('.log-entry');
+    if (entries.length > 50) {
+        entries[0].remove();
+    }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.key === ' ' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        if (!isMining) {
+            startMining();
+        }
+    }
+});
+</script>
+{% endblock %}

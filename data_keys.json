@@ -1,21 +1,77 @@
 {
   "datasets": [
     {
-      "name": "result.csv",
-      "data_id": "3d3dfdd2461449dfa36d7143daa5ed7b",
-      "encryption_key": "sZdM-E7nc2eAsBipnJ_52EstQn21iiXcFRx5Poofn14=",
+      "name": "Howdoesasmartcontractwork1 (1)",
+      "data_id": "7c5b060de67f4bf8ba681f94eeb000b1",
+      "encryption_key": "Z0ng70SafAAsQc5QjC2Ihdk-YlrqAOhVNwJ9duCzIfU=",
       "upload_date": "2025-05-04"
     },
     {
-      "name": "beispiel_daten.xlsx",
-      "data_id": "cb20f7d6054c4e3280fc2eaf1c55aac1",
-      "encryption_key": "iCrRPbxw1F5XjrQAhXSopyFhwbB3Pf5t994_2Pr_G-E=",
+      "name": "Howdoesasmartcontractwork1 (1)",
+      "data_id": "7c5b060de67f4bf8ba681f94eeb000b1",
+      "encryption_key": "Z0ng70SafAAsQc5QjC2Ihdk-YlrqAOhVNwJ9duCzIfU=",
+      "upload_date": "2025-06-11",
+      "purchased_by": "ddbedc4e6df948c2a322b788dc48bcd3",
+      "purchase_date": "2025-06-11"
+    },
+    {
+      "name": "test_model",
+      "data_id": "3fa96b4c03d74fe9a03cfa13e31cf4db",
+      "encryption_key": "9_h4Em7MJgJ1DiAZPkekp2Gn8-ut2g-qtDxDZUXXDq8=",
       "upload_date": "2025-05-04"
     },
     {
-      "name": "beispiel_daten.xlsx",
-      "data_id": "7e40666325a847cd8aa3dc4a33945e0f",
-      "encryption_key": "da17s2ACRCyLvsUUnkxUoT7pavAY7sv35j8xQNAVvO0=",
+      "name": "kuhlertfls_Commits_1_1 (1)",
+      "data_id": "588b53f769ab4a6bbc34789bc7ee2df5",
+      "encryption_key": "RYdg2uD0r7Lxi__R6ufksQweAJoCXw-Cvumn_9Ffe8w=",
+      "upload_date": "2025-05-04"
+    },
+    {
+      "name": "test_model",
+      "data_id": "3fa96b4c03d74fe9a03cfa13e31cf4db",
+      "encryption_key": "9_h4Em7MJgJ1DiAZPkekp2Gn8-ut2g-qtDxDZUXXDq8=",
+      "upload_date": "2025-06-26",
+      "purchased_by": "ddbedc4e6df948c2a322b788dc48bcd3",
+      "purchase_date": "2025-06-26"
+    },
+    {
+      "name": "test_model",
+      "data_id": "e44e077d394f4d5791a00da68fee0e27",
+      "encryption_key": "lsW7MJrdI7AUHH0jON7nG-JnC7RB1zZKhFB1IpBW54g=",
+      "upload_date": "2025-05-04"
+    },
+    {
+      "name": "test_model",
+      "data_id": "e44e077d394f4d5791a00da68fee0e27",
+      "encryption_key": "lsW7MJrdI7AUHH0jON7nG-JnC7RB1zZKhFB1IpBW54g=",
+      "upload_date": "2025-06-26",
+      "purchased_by": "34e51258c6d3406bac526fd5f46bc3ce",
+      "purchase_date": "2025-06-26"
+    },
+    {
+      "name": "kuhlertfls_Commits_1_1_1 (1)",
+      "data_id": "b12b1cfa1c844273996bc86d3d4a1dd5",
+      "encryption_key": "MmmBh_q8c7UJFOpEuN-5bepoJ6LhL_Q8XYrOf_0HDbI=",
+      "upload_date": "2025-05-04"
+    },
+    {
+      "name": "kuhlertfls_Commits_1_1_1 (1)",
+      "data_id": "b12b1cfa1c844273996bc86d3d4a1dd5",
+      "encryption_key": "MmmBh_q8c7UJFOpEuN-5bepoJ6LhL_Q8XYrOf_0HDbI=",
+      "upload_date": "2025-06-26",
+      "purchased_by": "ddbedc4e6df948c2a322b788dc48bcd3",
+      "purchase_date": "2025-06-26"
+    },
+    {
+      "name": "kuhlertfls_Commits_1_1_1_1 (1)",
+      "data_id": "4be822c45e194696ba26d2455dd764ff",
+      "encryption_key": "16aLDcQRJIHnGNOIPtDC-PSBwCPzC5pfMDoRl6r-sOg=",
+      "upload_date": "2025-05-04"
+    },
+    {
+      "name": "kuhlertfls_Commits_1_1_1 (1)",
+      "data_id": "d9e44ed973cf4620892e18964e868e9d",
+      "encryption_key": "p0GGVnNTeFNmPbmY8DZHt_LHu55Y1rAzKsOWpMYUU08=",
       "upload_date": "2025-05-04"
     }
   ]

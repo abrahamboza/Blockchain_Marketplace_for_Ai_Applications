@@ -1,0 +1,32 @@
+{
+    "demo": {
+        "username": "demo",
+        "password_hash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+        "blockchain_address": "21268e349c8943aa89f31d94cb78fde8"
+    },
+    "flo": {
+        "username": "flo",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "34e51258c6d3406bac526fd5f46bc3ce"
+    },
+    "flo1": {
+        "username": "flo1",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "39b45b5ad24548e4a86b490f5828470d"
+    },
+    "test1": {
+        "username": "test1",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "ddbedc4e6df948c2a322b788dc48bcd3"
+    },
+    "test2": {
+        "username": "test2",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "e10180e1fcf042fe8666d3651702867b"
+    },
+    "Presentation": {
+        "username": "Presentation",
+        "password_hash": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        "blockchain_address": "f6805fb386fd4e0c83adec712072379a"
+    }
+}

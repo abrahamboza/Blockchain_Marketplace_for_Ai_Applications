@@ -14,16 +14,21 @@ class Block:
     A unix-timestamp
     A list of the transactions in this block
     A number for the PoW
+    The difficulty used for mining this block
+    The actual mining time in seconds (NEW)
     The hashed block as a string
     """
 
     def __init__(self, index: int, previous_hash: str, timestamp: float,
-                 transactions: List[Dict], proof: int = 0, hash: str = None) -> None:
+                 transactions: List[Dict], proof: int = 0, difficulty: int = 4,
+                 mining_time: float = 0.0, hash: str = None) -> None:
         self.index = index
         self.previous_hash = previous_hash
         self.timestamp = timestamp
         self.transactions = transactions
         self.proof = proof
+        self.difficulty = difficulty  # Store the difficulty used for mining
+        self.mining_time = mining_time  # NEW: Store actual mining time in seconds
         self.hash = hash or self.calculate_hash()
 
     def calculate_hash(self) -> str:
@@ -38,6 +43,8 @@ class Block:
                 "timestamp": self.timestamp,
                 "transactions": self.transactions,
                 "proof": self.proof,
+                "difficulty": self.difficulty,  # Include difficulty in hash calculation
+                "mining_time": self.mining_time,  # Include mining time in hash calculation
             }, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
@@ -51,6 +58,8 @@ class Block:
             "timestamp": self.timestamp,
             "transactions": self.transactions,
             "proof": self.proof,
+            "difficulty": self.difficulty,  # Include difficulty in serialization
+            "mining_time": self.mining_time,  # Include mining time in serialization
             "hash": self.hash,
         }
 
@@ -133,31 +142,27 @@ class Blockchain:
         # Return index of the block which will handle the transaction
         return self.last_block.index + 1
 
-    def update_state(self) -> None:
-        """
-        updates the state of the blockchain using all transactions
-        :return:
-        """
 
-        # Normally here we would synch all Account values and update them
-        # >> maybe implement later
 
-    def make_block(self, proof: int) -> Block:
+    def make_block(self, proof: int, difficulty: int = 4, mining_time: float = 0.0) -> Block:
         """
         Creates a new Block in the Blockchain
-        :param proof:
+        :param proof: The proof of work
+        :param difficulty: The difficulty used for mining
+        :param mining_time: The actual time taken to mine this block in seconds
         :return: new Block
         """
-
         previous_block = self.last_block
 
-        # Neuen Block erstellen
+        # Neuen Block erstellen mit Schwierigkeit und Mining-Zeit
         block = Block(
             index=len(self.chain),
             previous_hash=previous_block.hash,
             timestamp=time.time(),
             transactions=self.current_transactions,
             proof=proof,
+            difficulty=difficulty,  # Store the difficulty used
+            mining_time=mining_time,  # Store the actual mining time
         )
 
         # Reset current transactions
@@ -203,7 +208,7 @@ class Blockchain:
         if block.index != previous_block.index + 1:
             return False
 
-        if not self.valid_proof(previous_block.proof, block.proof):
+        if not self.valid_proof(previous_block.proof, block.proof, block.difficulty):
             return False
 
         for transaction in block.transactions:
@@ -231,15 +236,7 @@ class Blockchain:
 
         return True
 
-    def consensus(self) -> bool:
-        """
-        Simple Consens algorithm >> find the longest chain
-        :return: True if chain got replaced False if not
-        """
-        # Normally we would check the chains of other nodes here
-        # and compare them but this will probably be implemented later or
-        # not at all
-        return False
+
 
     def proof_of_work(self, last_proof: int, difficulty: int = 4) -> tuple:
         """
@@ -284,8 +281,8 @@ class Blockchain:
         last_proof = last_block.proof
         proof, mining_time = self.proof_of_work(last_proof, difficulty)
 
-        # Create new Block
-        block = self.make_block(proof)
+        # Create new Block with the used difficulty AND the actual mining time
+        block = self.make_block(proof, difficulty, mining_time)
 
         # Aktualisiere die purchased_by-Listen für Daten und Modelle basierend auf geminen Transaktionen
         for tx in block.transactions:

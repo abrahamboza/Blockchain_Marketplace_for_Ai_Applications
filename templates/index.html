@@ -1,130 +1,813 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blockchain Marketplace for AI Applications</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-            padding-top: 2rem;
-        }
-        .container {
-            max-width: 800px;
-        }
-        .hero {
-            background-color: #e9ecef;
-            padding: 3rem 0;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        .feature-button {
-            margin: 1rem;
-            padding: 1rem 2rem;
-            font-size: 1.2rem;
-        }
-        .feature-card {
-            transition: transform 0.3s;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
-            margin-bottom: 1.5rem;
-            height: 100%;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-        }
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        .feature-section {
-            padding: 3rem 0;
-            background-color: white;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-        }
-    </style>
-</head>
-<body>
+{% extends "base_layout.html" %}
+
+{% block title %}Data Marketplace Mockup | Blockchain & ML Demo{% endblock %}
+
+{% block additional_styles %}
+/* Additional styles for the landing page */
+.student-note {
+    margin-top: 2rem;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-style: italic;
+    max-width: 650px;
+}
+
+.student-note i {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.theory-card {
+    height: 100%;
+    transition: transform 0.3s;
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.theory-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.theory-header {
+    font-weight: 600;
+    color: white;
+    padding: 1rem;
+    font-size: 1.1rem;
+}
+
+.theory-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.bchain-header {
+    background: linear-gradient(45deg, #3b82f6, #2563eb);
+}
+
+.crypto-header {
+    background: linear-gradient(45deg, #8b5cf6, #6d28d9);
+}
+
+.ml-header {
+    background: linear-gradient(45deg, #ec4899, #db2777);
+}
+
+.core-components {
+    background-color: #f8fafc;
+}
+
+.component-item {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s;
+    border-left: 5px solid transparent;
+}
+
+.component-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.component-item.blockchain {
+    border-left-color: #3b82f6;
+}
+
+.component-item.encryption {
+    border-left-color: #8b5cf6;
+}
+
+.component-item.ml {
+    border-left-color: #ec4899;
+}
+
+.component-item.ipfs {
+    border-left-color: #10b981;
+}
+
+.component-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+}
+
+.component-item.blockchain .component-icon {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.component-item.encryption .component-icon {
+    background-color: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.component-item.ml .component-icon {
+    background-color: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.component-item.ipfs .component-icon {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.component-title {
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+}
+
+.demo-section {
+    background-color: white;
+}
+
+.demo-canvas-container {
+    background-color: #f8fafc;
+    border-radius: 10px;
+    padding: 1.5rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.implementation-section {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4ebf5 100%);
+}
+
+.code-block {
+    background: #1e293b;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.code-block .comment {
+    color: #94a3b8;
+}
+
+.feature-section {
+    background-color: white;
+}
+
+.feature-card {
+    background-color: #f8fafc;
+    border-radius: 10px;
+    padding: 1.5rem;
+    height: 100%;
+    transition: all 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+    font-size: 1.8rem;
+}
+
+.feature-icon.secure {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.feature-icon.blockchain {
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.feature-icon.ml {
+    background-color: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.feature-title {
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    text-align: center;
+}
+
+.feature-description {
+    text-align: center;
+    color: #4b5563;
+}
+
+.cta-section {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: white;
+}
+
+.cta-section h2 {
+    font-weight: 700;
+}
+
+.cta-buttons .btn {
+    margin: 0 0.5rem 1rem;
+    padding: 0.6rem 1.5rem;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+}
+
+.cta-buttons .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.exploration-steps {
+    counter-reset: step-counter;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.exploration-steps li {
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 1.5rem;
+    counter-increment: step-counter;
+}
+
+.exploration-steps li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 2.2rem;
+    height: 2.2rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.note-box {
+    background-color: #f8fafc;
+    border-left: 4px solid #3b82f6;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 8px 8px 0;
+}
+
+.note-box h5 {
+    margin-bottom: 0.5rem;
+    color: #1e40af;
+}
+
+@media (max-width: 768px) {
+    .theory-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .component-item, .feature-card {
+        margin-bottom: 1.5rem;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
     <div class="container">
-        <div class="hero">
-            <h1>Blockchain Marketplace for AI Applications</h1>
-            <p class="lead">A decentralized marketplace for data and machine learning models using blockchain for transparency, security, and autonomy</p>
-        </div>
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <h1>Blockchain-basierter <br>Data Marketplace</h1>
+                <p class="lead mt-3 mb-4">Ein experimenteller Mockup zur Erforschung der Synergie zwischen Blockchain-Technologie, Kryptographie und Maschinellem Lernen.</p>
 
-        <div class="row text-center">
-            <div class="col-md-3">
-                <a href="/upload-dataset" class="btn btn-primary feature-button">Upload Dataset</a>
-                <p>Share your data securely on the blockchain</p>
-            </div>
-            <div class="col-md-3">
-                <a href="/training/dashboard" class="btn btn-success feature-button">Train Models</a>
-                <p>Create AI models using your datasets</p>
-            </div>
-            <div class="col-md-3">
-                <a href="/view-blockchain" class="btn btn-secondary feature-button">View Blockchain</a>
-                <p>Explore the current state of the blockchain</p>
-            </div>
-            <div class="col-md-3">
-                <a href="/admin" class="btn btn-danger feature-button">Admin Page</a>
-                <p>Access admin features (password required)</p>
-            </div>
-        </div>
+                <div class="student-note">
+                    <i class="bi bi-mortarboard-fill"></i>
+                    Anwendungsprojekt Florian Kuhlert Technische Hochschule Nürnberg Georg Simon Ohm, 2025
+                </div>
 
-        <!-- New Feature Section with Cards -->
-        <div class="feature-section">
-            <h2 class="text-center mb-4">Platform Features</h2>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center">
-                            <div class="feature-icon">🔒</div>
-                            <h5 class="card-title">Secure Data Exchange</h5>
-                            <p class="card-text">End-to-end encryption ensures your data remains private and secure.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center">
-                            <div class="feature-icon">🔗</div>
-                            <h5 class="card-title">Blockchain Verification</h5>
-                            <p class="card-text">All transactions are recorded on a tamper-proof blockchain.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card feature-card">
-                        <div class="card-body text-center">
-                            <div class="feature-icon">🤖</div>
-                            <h5 class="card-title">ML Model Training</h5>
-                            <p class="card-text">Create and verify machine learning models directly on the platform.</p>
-                        </div>
-                    </div>
+                <div class="hero-buttons d-flex mt-4">
+                    <a href="/blockchain" class="btn btn-light">Blockchain Explorer</a>
+                    <a href="/marketplace" class="btn btn-outline-light">Marketplace Demo</a>
                 </div>
             </div>
-        </div>
-
-        <div class="row mt-3">
-            <div class="col-12">
-                <h2>About This Platform</h2>
-                <p>
-                    This decentralized marketplace allows users to securely share and trade data and
-                    machine learning models. All transactions are recorded on a blockchain for
-                    transparency and security. Data is encrypted and only accessible to authorized users.
-                </p>
-                <p>
-                    With our integrated machine learning capabilities, you can not only share data but also
-                    train models directly on the platform. The entire machine learning process is recorded
-                    on the blockchain, creating a verifiable lineage from data to model.
-                </p>
+            <div class="col-lg-5">
+                <div class="hero-image text-center">
+                    <!-- Canvas for dynamic blockchain visualization -->
+                    <canvas id="hero-canvas" width="400" height="280" class="img-fluid"></canvas>
+                </div>
             </div>
         </div>
     </div>
+</section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+
+<!-- Core Components Section -->
+<section class="core-components py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Kernkomponenten</h2>
+        <p class="text-center mb-5">Der Marktplatz besteht aus mehreren integrierten Modulen, die zusammenarbeiten, um ein funktionales System zu bilden:</p>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="component-item blockchain">
+                    <div class="component-icon">
+                        <i class="bi bi-link-45deg"></i>
+                    </div>
+                    <h4 class="component-title">Blockchain-Modul</h4>
+                    <p>Eine Python-basierte Blockchain-Implementierung mit einem anpassbaren Proof-of-Work Algorithmus. Die Blockchain speichert verschiedene Transaktionstypen wie Daten-Uploads, Modelltraining und Käufe.</p>
+                    <p class="mb-0 text-muted">Implementiert in <code>Blockchain/blockchain.py und marketplace.py</code></p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="component-item encryption">
+                    <div class="component-icon">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h4 class="component-title">Verschlüsselungsmodul</h4>
+                    <p>Implementiert symmetrische Fernet-Verschlüsselung zum Schutz der Daten vor unbefugtem Zugriff. Nur autorisierte Käufer erhalten die Entschlüsselungsschlüssel für die erworbenen Daten.</p>
+                    <p class="mb-0 text-muted">Implementiert in <code>encryption.py</code> und <code>key_manager.py</code></p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="component-item mining">
+                    <div class="component-icon">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h4 class="component-title">Proof-of-Work Konsens</h4>
+                    <p>Implementierung des Proof-of-Work Konsensalgorithmus mit anpassbarer Schwierigkeit. Miners lösen kryptographische Rätsel, um neue Blöcke zu validieren und das Netzwerk zu sichern.</p>
+                    <p class="mb-0 text-muted">Implementiert in <code>blockchain.py</code> und Mining-Dashboard</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="component-item ipfs">
+                    <div class="component-icon">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <h4 class="component-title">IPFS-Simulation</h4>
+                    <p>Eine Simulation des InterPlanetary File Systems für die dezentralisierte Speicherung von Datensätzen und Modellen. Dies ermöglicht eine effiziente Datenverteilung und -abrufung.</p>
+                    <p class="mb-0 text-muted">Implementiert in <code>Storage_IPFS_sim/simulated_ipfs.py</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Blockchain Visualization Section -->
+<section class="demo-section py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h2>Blockchain-Visualisierung</h2>
+                <p class="lead">Ein Einblick in die Struktur und Funktionsweise der Blockchain</p>
+                <p>Jeder Block in der Kette enthält einen Hash des vorherigen Blocks, einen Zeitstempel, eine Liste von Transaktionen und einen Proof-of-Work-Nachweis. Diese Struktur macht die Blockchain unveränderlich und transparent.</p>
+                <p>Die Schwierigkeit des Mining-Prozesses kann angepasst werden, was es ermöglicht, das Konzept des Proof-of-Work in einer kontrollierten Umgebung zu demonstrieren.</p>
+                <a href="/blockchain" class="btn btn-primary mt-3">Blockchain Explorer öffnen</a>
+            </div>
+            <div class="col-lg-6">
+                <div class="demo-canvas-container mt-4 mt-lg-0">
+                    <canvas id="blockchain-demo" width="500" height="300" class="img-fluid"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Key Features Section -->
+<section class="feature-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Hauptfunktionen</h2>
+        <p class="text-center mb-5">Der Marktplatz bietet verschiedene Funktionen zur Demonstration der Blockchain-ML-Integration:</p>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon secure">
+                        <i class="bi bi-shield-lock"></i>
+                    </div>
+                    <h5 class="feature-title">Sicherer Datenaustausch</h5>
+                    <p class="feature-description">Ende-zu-Ende-Verschlüsselung stellt sicher, dass nur autorisierte Nutzer auf die Daten zugreifen können. Alle Zugriffsberechtigungen werden in der Blockchain nachvollziehbar dokumentiert.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon blockchain">
+                        <i class="bi bi-link-45deg"></i>
+                    </div>
+                    <h5 class="feature-title">Nachvollziehbare Transaktionen</h5>
+                    <p class="feature-description">Alle Daten- und Modelltransaktionen werden in der Blockchain verzeichnet, was vollständige Transparenz und Überprüfbarkeit der Datennutzung ermöglicht.</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon ml">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h5 class="feature-title">Interaktives Mining</h5>
+                    <p class="feature-description">Reales interaktives Mining mit einstellbarer Schwierigkeitsstufe und im Block gespeicherter Rechendauer</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Hero canvas animation
+    const heroCanvas = document.getElementById('hero-canvas');
+    if (heroCanvas) {
+        const ctx = heroCanvas.getContext('2d');
+
+        // Make sure canvas size matches display size
+        const resizeCanvas = () => {
+            const container = heroCanvas.parentElement;
+            if (container) {
+                heroCanvas.width = container.clientWidth;
+                heroCanvas.height = 280;
+            }
+        };
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Animation variables
+        let animationFrame;
+        let time = 0;
+
+        // Block positions and properties
+        const blocks = [
+            { x: heroCanvas.width * 0.2, y: heroCanvas.height * 0.3, size: 60, color: 'rgba(59, 130, 246, 0.7)' },
+            { x: heroCanvas.width * 0.5, y: heroCanvas.height * 0.2, size: 50, color: 'rgba(139, 92, 246, 0.7)' },
+            { x: heroCanvas.width * 0.8, y: heroCanvas.height * 0.4, size: 55, color: 'rgba(16, 185, 129, 0.7)' },
+            { x: heroCanvas.width * 0.3, y: heroCanvas.height * 0.7, size: 45, color: 'rgba(236, 72, 153, 0.7)' },
+            { x: heroCanvas.width * 0.6, y: heroCanvas.height * 0.6, size: 40, color: 'rgba(245, 158, 11, 0.7)' }
+        ];
+
+        // Data nodes connected to blocks
+        const dataNodes = [
+            { x: heroCanvas.width * 0.15, y: heroCanvas.height * 0.5, color: 'rgba(255, 255, 255, 0.5)', targetBlock: 0 },
+            { x: heroCanvas.width * 0.4, y: heroCanvas.height * 0.4, color: 'rgba(255, 255, 255, 0.5)', targetBlock: 1 },
+            { x: heroCanvas.width * 0.65, y: heroCanvas.height * 0.3, color: 'rgba(255, 255, 255, 0.5)', targetBlock: 2 },
+            { x: heroCanvas.width * 0.25, y: heroCanvas.height * 0.8, color: 'rgba(255, 255, 255, 0.5)', targetBlock: 3 },
+            { x: heroCanvas.width * 0.75, y: heroCanvas.height * 0.7, color: 'rgba(255, 255, 255, 0.5)', targetBlock: 4 }
+        ];
+
+        // Animation function
+        function animate() {
+            time += 0.01;
+
+            // Update block positions with floating animation
+            for (let i = 0; i < blocks.length; i++) {
+                const baseY = heroCanvas.height * [0.3, 0.2, 0.4, 0.7, 0.6][i];
+                blocks[i].y = baseY + Math.sin(time + i) * 5;
+            }
+
+            // Clear canvas
+            ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+
+            // Draw background grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+
+            const gridSize = 30;
+
+            for (let x = 0; x < heroCanvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, heroCanvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = 0; y < heroCanvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(heroCanvas.width, y);
+                ctx.stroke();
+            }
+
+            // Draw connections between blocks
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+
+            for (let i = 0; i < blocks.length - 1; i++) {
+                ctx.beginPath();
+                ctx.moveTo(blocks[i].x, blocks[i].y);
+                ctx.lineTo(blocks[i+1].x, blocks[i+1].y);
+                ctx.stroke();
+            }
+
+            // Draw data nodes and connections to blocks
+            dataNodes.forEach((node, index) => {
+                // Update node position with subtle movement
+                node.x += Math.sin(time * 1.5 + index) * 0.5;
+                node.y += Math.cos(time * 1.5 + index) * 0.5;
+
+                // Draw connection to target block
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.moveTo(node.x, node.y);
+                ctx.lineTo(blocks[node.targetBlock].x, blocks[node.targetBlock].y);
+                ctx.stroke();
+
+                // Draw node
+                ctx.beginPath();
+                ctx.fillStyle = node.color;
+                ctx.arc(node.x, node.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw blocks
+            blocks.forEach((block, index) => {
+                // Draw block shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(block.x - block.size/2 + 3, block.y - block.size/2 + 3, block.size, block.size);
+
+                // Draw block
+                ctx.fillStyle = block.color;
+                ctx.fillRect(block.x - block.size/2, block.y - block.size/2, block.size, block.size);
+
+                // Draw block border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x - block.size/2, block.y - block.size/2, block.size, block.size);
+
+                // Draw block number
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(index, block.x, block.y);
+
+                // Draw hash lines (decorative)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 1;
+
+                // Horizontal hash lines
+                for (let i = 1; i < 4; i++) {
+                    ctx.beginPath();
+                    ctx.moveTo(block.x - block.size/2, block.y - block.size/2 + (block.size/4) * i);
+                    ctx.lineTo(block.x + block.size/2, block.y - block.size/2 + (block.size/4) * i);
+                    ctx.stroke();
+                }
+            });
+
+            // Request next animation frame
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        // Start animation
+        animate();
+
+        // Stop animation when user leaves tab/page to save resources
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                cancelAnimationFrame(animationFrame);
+            } else {
+                animate();
+            }
+        });
+    }
+
+    // Blockchain demo canvas
+    const blockchainDemoCanvas = document.getElementById('blockchain-demo');
+    if (blockchainDemoCanvas) {
+        const ctx = blockchainDemoCanvas.getContext('2d');
+
+        // Make canvas responsive
+        const resizeBlockchainCanvas = () => {
+            const container = blockchainDemoCanvas.parentElement;
+            if (container) {
+                blockchainDemoCanvas.width = container.clientWidth;
+                blockchainDemoCanvas.height = 300;
+            }
+        };
+
+        resizeBlockchainCanvas();
+        window.addEventListener('resize', resizeBlockchainCanvas);
+
+        // Create blockchain visualization
+        const blockchainBlocks = [];
+        const numBlocks = 5;
+
+        // Initialize blocks
+        for (let i = 0; i < numBlocks; i++) {
+            blockchainBlocks.push({
+                index: i,
+                x: (blockchainDemoCanvas.width / (numBlocks + 1)) * (i + 1),
+                y: blockchainDemoCanvas.height / 2,
+                width: 100,
+                height: 140,
+                color: i === 0 ? 'rgba(16, 185, 129, 0.7)' : 'rgba(59, 130, 246, 0.7)', // Genesis block is green
+                numTransactions: Math.floor(Math.random() * 5) + 1,
+                hash: generateRandomHash(),
+                previousHash: i > 0 ? blockchainBlocks[i-1]?.hash : '0000000000000000000000000000000000000000000000000000000000000000'
+            });
+        }
+
+        // Generate random hash for visualization
+        function generateRandomHash() {
+            const characters = '0123456789abcdef';
+            let hash = '';
+            for (let i = 0; i < 8; i++) {
+                hash += characters.charAt(Math.floor(Math.random() * characters.length));
+            }
+            return hash.padStart(8, '0');
+        }
+
+        // Draw blockchain visualization
+        function drawBlockchain() {
+            // Clear canvas
+            ctx.clearRect(0, 0, blockchainDemoCanvas.width, blockchainDemoCanvas.height);
+
+            // Draw connections between blocks
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+            ctx.lineWidth = 3;
+
+            for (let i = 1; i < blockchainBlocks.length; i++) {
+                ctx.beginPath();
+                ctx.moveTo(blockchainBlocks[i-1].x + blockchainBlocks[i-1].width/2, blockchainBlocks[i-1].y);
+                ctx.lineTo(blockchainBlocks[i].x - blockchainBlocks[i].width/2, blockchainBlocks[i].y);
+                ctx.stroke();
+
+                // Draw arrow
+                const arrowX = blockchainBlocks[i].x - blockchainBlocks[i].width/2 - 10;
+                const arrowY = blockchainBlocks[i].y;
+
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY - 5);
+                ctx.lineTo(arrowX + 10, arrowY);
+                ctx.lineTo(arrowX, arrowY + 5);
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.4)';
+                ctx.fill();
+            }
+
+            // Draw blocks
+            blockchainBlocks.forEach((block, index) => {
+                // Position blocks evenly across canvas
+                block.x = (blockchainDemoCanvas.width / (numBlocks + 1)) * (index + 1);
+
+                // Draw block shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(block.x - block.width/2 + 5, block.y - block.height/2 + 5, block.width, block.height);
+
+                // Draw block
+                ctx.fillStyle = block.color;
+                ctx.fillRect(block.x - block.width/2, block.y - block.height/2, block.width, block.height);
+
+                // Draw block border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x - block.width/2, block.y - block.height/2, block.width, block.height);
+
+                // Draw block header
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(block.x - block.width/2, block.y - block.height/2, block.width, 30);
+
+                // Draw block number
+                ctx.fillStyle = 'white';
+                ctx.font = '14px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`Block ${block.index}`, block.x, block.y - block.height/2 + 18);
+
+                // Draw dividing lines
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1;
+
+                // Draw line under header
+                ctx.beginPath();
+                ctx.moveTo(block.x - block.width/2, block.y - block.height/2 + 30);
+                ctx.lineTo(block.x + block.width/2, block.y - block.height/2 + 30);
+                ctx.stroke();
+
+                // Draw line for hash section
+                ctx.beginPath();
+                ctx.moveTo(block.x - block.width/2, block.y + 20);
+                ctx.lineTo(block.x + block.width/2, block.y + 20);
+                ctx.stroke();
+
+                // Draw transactions text
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${block.numTransactions} Transactions`, block.x, block.y - 15);
+
+                // Draw Previous Hash
+                ctx.font = '10px Courier New';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillText('Prev:', block.x - 30, block.y);
+                ctx.fillText(block.previousHash.substring(0, 8) + '...', block.x + 10, block.y);
+
+                // Draw Hash
+                ctx.fillStyle = 'white';
+                ctx.fillText('Hash:', block.x - 30, block.y + 40);
+                ctx.fillText(block.hash.substring(0, 8) + '...', block.x + 10, block.y + 40);
+            });
+        }
+
+        // Initial draw
+        drawBlockchain();
+
+        // Resize handler
+        window.addEventListener('resize', () => {
+            resizeBlockchainCanvas();
+            drawBlockchain();
+        });
+
+        // Add mining animation
+        let isMining = false;
+        let miningInterval;
+
+        function startMining() {
+            if (isMining) return;
+
+            isMining = true;
+
+            // Create a new block
+            const lastBlock = blockchainBlocks[blockchainBlocks.length - 1];
+            const newBlock = {
+                index: lastBlock.index + 1,
+                x: blockchainDemoCanvas.width - 100,
+                y: blockchainDemoCanvas.height / 2,
+                width: 100,
+                height: 140,
+                color: 'rgba(236, 72, 153, 0.7)', // Pending block is pink
+                numTransactions: Math.floor(Math.random() * 5) + 1,
+                hash: '........',
+                previousHash: lastBlock.hash
+            };
+
+            blockchainBlocks.push(newBlock);
+
+            // Animate mining
+            let miningStep = 0;
+            miningInterval = setInterval(() => {
+                miningStep++;
+
+                // Update hash pattern during mining
+                newBlock.hash = generateRandomHash();
+
+                // Redraw blockchain
+                drawBlockchain();
+
+                // Show mining animation
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Mining...', newBlock.x, newBlock.y - block.height/2 - 15);
+
+                // Animation dots
+                let dots = '';
+                for (let i = 0; i < (miningStep % 4); i++) {
+                    dots += '.';
+                }
+                ctx.fillText(dots, newBlock.x + 40, newBlock.y - block.height/2 - 15);
+
+                // Complete mining after a few seconds
+                if (miningStep > 20) {
+                    clearInterval(miningInterval);
+                    newBlock.color = 'rgba(59, 130, 246, 0.7)';
+                    drawBlockchain();
+                    isMining = false;
+
+                    // Remove oldest block if too many
+                    if (blockchainBlocks.length > 6) {
+                        blockchainBlocks.shift();
+
+                        // Update indices
+                        blockchainBlocks.forEach((block, idx) => {
+                            block.index = idx;
+                        });
+
+                        drawBlockchain();
+                    }
+                }
+            }, 200);
+        }
+
+        // Start mining animation periodically
+        setTimeout(() => {
+            startMining();
+
+            // Mine a new block every 10 seconds
+            setInterval(startMining, 10000);
+        }, 2000);
+    }
+});
+</script>
+{% endblock %}
