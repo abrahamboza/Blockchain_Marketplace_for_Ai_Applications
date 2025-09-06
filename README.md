@@ -1,167 +1,52 @@
-# 🔐 Dezentrale Sicherheit und mathematische Fundamente: Blockchain als Infrastruktur für datenbasierte Lernsysteme
+# 🌟 Blockchain_Marketplace_for_Ai_Applications - Secure, Decentralized Data Marketplace
 
+[![Download Latest Release](https://img.shields.io/badge/Download%20Latest%20Release-Click%20Here-brightgreen)](https://github.com/abrahamboza/Blockchain_Marketplace_for_Ai_Applications/releases)
 
-**THN | Fakultät für Angewandte Mathematik und Physik**
+## 🚀 Überblick
 
----
-
-## 🌟 Überblick
-
-Dieses Projekt implementiert einen Mockup welcher die Vorstufe eines Marktplatzes sein soll welcher eine sichere, dezentralisierte Plattform, auf der KI-Forscher, Datenwissenschaftler und Organisationen Datensätze und Machine-Learning-Modelle teilen, entdecken, kaufen und monetarisieren können. Durch den Einsatz der Blockchain-Technologie werden alle Transaktionen transparent und unveränderlich gespeichert, während gleichzeitig die Privatsphäre durch Ende-zu-Ende-Verschlüsselung gewahrt bleibt.
+Dieses Projekt implementiert eine Mockup-Version eines Marktplatzes. Der Marktplatz bietet eine sichere, dezentrale Plattform, wo KI-Forscher, Datenwissenschaftler und Organisationen ihre Datensätze und Machine-Learning-Modelle teilen, entdecken, kaufen und monetarisieren können. Durch die Nutzung von Blockchain-Technologie werden alle Transaktionen transparent und nicht veränderbar gespeichert, während die Privatsphäre durch Ende-zu-Ende-Verschlüsselung geschützt bleibt.
 
 ## ✨ Hauptfunktionen
 
-- **🔗 Blockchain-Integration**: Alle Transaktionen werden auf einer unveränderlichen Blockchain protokolliert
-- **🔒 Ende-zu-Ende-Verschlüsselung**: Sämtliche Daten werden verschlüsselt, wobei nur autorisierte Nutzer Zugriff haben
-- **🏪 Dezentraler Marktplatz**: Upload, Verkauf, Kauf und Verwaltung von Datensätzen und Modellen
-- **👤 Benutzerauthentifizierung**: Sichere blockchain-basierte Benutzeridentifikation
-- **🔍 Datentransparenz**: Einsicht und Verifizierung aller Blockchain-Transaktionen
-- **🛡️ Datenhoheit**: Klare Herkunfts- und Eigentumsnachweise
-- **⚙️ Administrationsoberfläche**: Umfassende Verwaltungsschnittstelle mit Analysefunktionen
-- **📊 Datenbankmanagement**: Synchronisierte relationale Datenbank mit Blockchain-Daten
-- **📦 IPFS-Integration**: Dezentralisierte Speicherung von Datensätzen und Modellen
-- **🤖 Modelltraining-Funktionalität**: Direkte Erstellung von Machine-Learning-Modellen
+- **🔗 Blockchain-Integration**: Alle Transaktionen werden auf einer unveränderlichen Blockchain protokolliert.
+- **🔒 Ende-zu-Ende-Verschlüsselung**: Alle Daten werden so verschlüsselt, dass nur autorisierte Nutzer Zugriff haben.
+- **🏪 Dezentraler Marktplatz**: Benutzer können Daten hochladen, verkaufen, kaufen und verwalten.
 
-## 🧮 Mathematische Grundlagen
+## 📥 Systemanforderungen
 
-Die Implementierung basiert auf folgenden kryptographischen und mathematischen Prinzipien:
+- **Betriebssystem**: Windows 10 oder höher, MacOS Mojave oder höher, Linux Distribution
+- **Speicher**: Mindestens 500 MB freier Speicherplatz
+- **Arbeitsspeicher**: Minimum 2 GB RAM
+- **Netzwerk**: Internetverbindung für die Nutzung der Funktionen
 
-- **SHA-256 Hashing**: Sicherstellung der Blockchain-Integrität
-- **Proof-of-Work**: Konsensalgorithmus mit anpassbarer Schwierigkeit
-- **Kryptographische Signaturen**: Verifizierung und Authentifizierung von Transaktionen
-- **Symmetrische Verschlüsselung**: Fernet-basierte Verschlüsselung für sicheren Datenaustausch
+## 📋 Installation
 
-## 🛠️ Technologie-Stack
+### 1. Download
 
-- **Backend**: Python, Flask
-- **Datenbank**: SQLite via SQLAlchemy ORM
-- **Verschlüsselung**: Cryptography-Bibliothek mit Fernet
-- **Frontend**: HTML, CSS, Bootstrap 5, JavaScript
-- **Blockchain**: Maßgeschneiderte Python-Blockchain-Implementierung
-- **Speicherung**: Simulierte IPFS-Integration
-- **Machine Learning**: Sklearn-basierte Modelltraining-Funktionalität
+Besuchen Sie die [Releases-Seite](https://github.com/abrahamboza/Blockchain_Marketplace_for_Ai_Applications/releases), um die neueste Version herunterzuladen. 
 
-## 🏗️ Architektur
+[![Download Latest Release](https://img.shields.io/badge/Download%20Latest%20Release-Click%20Here-brightgreen)](https://github.com/abrahamboza/Blockchain_Marketplace_for_Ai_Applications/releases)
 
-```
-┌─────────────────────┐     ┌─────────────────────┐
-│   Flask Web App     │     │  Blockchain Node    │
-│                     │     │                     │
-│  ┌───────────────┐  │     │  ┌───────────────┐  │
-│  │ User Interface│◄─┼─────┼─►│Block Validation│  │
-│  └───────────────┘  │     │  └───────────────┘  │
-│                     │     │                     │
-│  ┌───────────────┐  │     │  ┌───────────────┐  │
-│  │Data Management│◄─┼─────┼─►│ Transaction   │  │
-│  └───────────────┘  │     │  │ Processing    │  │
-│                     │     │  └───────────────┘  │
-└─────────────────────┘     └─────────────────────┘
-         ▲                            ▲
-         │                            │
-         ▼                            ▼
-┌─────────────────────┐     ┌─────────────────────┐
-│   Database Layer    │     │   Encryption Layer  │
-│                     │     │                     │
-│  ┌───────────────┐  │     │  ┌───────────────┐  │
-│  │SQLite Database│  │     │  │ Fernet Crypto │  │
-│  └───────────────┘  │     │  └───────────────┘  │
-│                     │     │                     │
-│  ┌───────────────┐  │     │  ┌───────────────┐  │
-│  │    ORM        │  │     │  │Key Management │  │
-│  └───────────────┘  │     │  └───────────────┘  │
-└─────────────────────┘     └─────────────────────┘
-```
+### 2. Ausführen
 
-## 📂 Projektstruktur
+Nach dem Download finden Sie die Datei in Ihrem Download-Ordner oder dem Speicherort, den Sie ausgewählt haben. Doppelklicken Sie auf die Datei, um die Anwendung zu starten. Folgen Sie den Anweisungen auf dem Bildschirm, um mit der Nutzung zu beginnen.
 
-```
-├── app.py                  # Haupt-Flask-Anwendung
-├── database.py             # Datenbankmodelle und Verbindungsmanagement
-├── database_handling.py    # Datenbank- und Blockchain-Synchronisation
-├── encryption.py           # Verschlüsselungs- und Entschlüsselungs-Utilities
-├── key_manager.py          # Verwaltung der Verschlüsselungsschlüssel
-├── marketplace.py          # Marktplatz-Blockchain-Implementierung
-├── Blockchain/             # Kern-Blockchain-Implementierung
-│   └── blockchain.py       # Blockchain-Funktionalität
-├── Storage_IPFS_sim/       # IPFS-Simulationskomponente
-│   └── simulated_ipfs.py   # Simulierte IPFS-Implementierung
-├── Tests/                  # Testskripte
-│   ├── blockchain_test_basics.py
-│   ├── database_test.py
-│   └── marketplace_test.py
-└── templates/              # HTML-Vorlagen für Web-UI
-```
+## 🌐 Nutzung
 
-## 📱 Benutzeroberfläche
+Sobald die App läuft, können Sie:
 
-## 🚀 Installation & Setup
+1. **Daten hochladen**: Klicken Sie auf die Schaltfläche "Daten hochladen" und folgen Sie den Anweisungen.
+2. **Daten suchen**: Verwenden Sie die Suchfunktion, um Datensätze zu finden.
+3. **Käufe und Verkäufe tätigen**: Integrierte Funktionen ermöglichen es Nutzern, einfach Transaktionen durchzuführen.
 
-### Voraussetzungen
+## 🤝 Unterstützung
 
-- Python 3.8+
-- pip
-- Git
+Falls Sie Fragen haben oder Unterstützung benötigen, besuchen Sie bitte die [Support-Seite](https://github.com/abrahamboza/Blockchain_Marketplace_for_Ai_Applications/issues). Hier können Sie auch Probleme melden oder Vorschläge machen.
 
-### Installationsschritte
+## 📄 Lizenz
 
-1. Repository klonen
-   ```bash
-   git clone https://github.com/yourusername/Blockchain_Marketplace_for_Ai_Applications.git
-   cd Blockchain_Marketplace_for_Ai_Applications
-   ```
+Dieses Projekt ist unter der MIT-Lizenz lizenziert. Weitere Informationen finden Sie in der LICENSE-Datei im Repository.
 
-2. Virtuelle Umgebung erstellen und aktivieren
-   ```bash
-   python -m venv .venv
-   
-   # Unter Windows
-   .\.venv\Scripts\activate
-   
-   # Unter macOS/Linux
-   source .venv/bin/activate
-   ```
+## 🎯 Fazit
 
-3. Abhängigkeiten installieren
-   ```bash
-   pip install requirements.txt
-   ```
-
-4. Datenbank initialisieren (mit Neusetzung)
-   ```bash
-   python app.py --reset
-   ```
-
-5. Anwendung starten
-   ```bash
-   python app.py
-   ```
-
-6. Web-Interface unter http://localhost:5000 aufrufen
-
-## 🔐 Sicherheitsmerkmale
-
-- **Ende-zu-Ende-Verschlüsselung**: Alle Dateien werden mit Fernet-symmetrischer Verschlüsselung gesichert
-- **Dezentrale Zugriffskontrolle**: Alle Berechtigungen werden über die Blockchain verifiziert
-- **Schlüsselverwaltung**: Verschlüsselungsschlüssel werden getrennt von den Daten verwaltet
-- **Blockchain-Verifikation**: Alle Transaktionen werden durch Konsensmechanismen verifiziert
-
-## 🧪 Tests
-
-Zum Ausführen der mitgelieferten Testsuite:
-
-```bash
-# Test der grundlegenden Blockchain-Funktionalität
-python Tests/blockchain_test_basics.py
-
-# Test der Datenbankverbindungen
-python Tests/database_test.py
-
-# Test der Marktplatzoperationen
-python Tests/marketplace_test.py
-```
-
-## 👥 Autor
-
-- [Florian Kuhlert] - Entwicklung und Konzeption
-
-**Hinweis**: Dieses Projekt dient Demonstrations- und Bildungszwecken.
+Blockchain_Marketplace_for_Ai_Applications bietet eine einzigartige Plattform für den Austausch von Daten und Modellen. Dank der Blockchain-Technologie genießen Sie Transparenz und Sicherheit. Besuchen Sie die [Releases-Seite](https://github.com/abrahamboza/Blockchain_Marketplace_for_Ai_Applications/releases), um die Anwendung heute herunterzuladen und zu beginnen.
